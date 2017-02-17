@@ -57,11 +57,46 @@ void prcsDiscussMessage(const char *payload) {
 	int64_t id;
 	char* text = new char[FRAME_PAYLOAD_SIZE];
 	sscanf_s(payload, "%I64d %[^\n]", &id, text, sizeof(char) * FRAME_PAYLOAD_SIZE);
-	
+
 	char* decodedText = new char[FRAME_PAYLOAD_SIZE];
 	Base64decode(decodedText, text);
 
 	CQ_sendDiscussMsg(appAuthCode, id, decodedText);
+}
+
+void prcsGroupMemberInfo(const char *payload) {
+	int64_t group, qq;
+	int32_t nocache;
+	sscanf_s(payload, "%I64d %I64d %I32d", &group, &qq, &nocache);
+
+	const char* result = CQ_getGroupMemberInfoV2(appAuthCode, group, qq, nocache);
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberInfo %s", result);
+	client->send(buffer, strlen(buffer));
+}
+
+void prcsStrangerInfo(const char *payload) {
+	int64_t qq;
+	int32_t nocache;
+	sscanf_s(payload, "%I64d %I32d", &qq, &nocache);
+
+	const char* result = CQ_getStrangerInfo(appAuthCode, qq, nocache);
+	
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "StrangerInfo %s", result);
+	client->send(buffer, strlen(buffer));
+}
+
+void prcsLoginNick() {
+	const char* result = CQ_getLoginNick(appAuthCode);
+
+	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE];
+	Base64encode(encoded_msg, result, strlen(result));
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "LoginNick %s", encoded_msg);
+	client->send(buffer, strlen(buffer));
 }
 
 void prcsUnknownFramePrefix(const char *buffer) {
@@ -124,6 +159,18 @@ void APIServer::run()
 			}
 			if (strcmp(prefix, "DiscussMessage") == 0) {
 				prcsDiscussMessage(payload);
+				continue;
+			}
+			if (strcmp(prefix, "GroupMemberInfo") == 0) {
+				prcsGroupMemberInfo(payload);
+				continue;
+			}
+			if (strcmp(prefix, "StrangerInfo") == 0) {
+				prcsStrangerInfo(payload);
+				continue;
+			}
+			if (strcmp(prefix, "LoginNick") == 0) {
+				prcsLoginNick();
 				continue;
 			}
 			// Unknown prefix
