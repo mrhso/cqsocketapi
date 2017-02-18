@@ -192,7 +192,7 @@ CQEVENT(int32_t, __eventSystem_GroupAdmin, 24)(int32_t subType, int32_t sendTime
 	const char* user_info = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, beingOperateQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupAdmin %I32d %I64d %I64d %I32d %s", fromGroup, subType, beingOperateQQ, sendTime, user_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupAdmin %I64d %I32d %I64d %I32d %s", fromGroup, subType, beingOperateQQ, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
 	return EVENT_IGNORE;
@@ -212,7 +212,7 @@ CQEVENT(int32_t, __eventSystem_GroupMemberDecrease, 32)(int32_t subType, int32_t
 	if (subType == 2 || subType == 3) {
 		user_info1 = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, fromQQ, TRUE);
 	}
-	const char* user_info2 = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, beingOperateQQ, TRUE);
+	const char* user_info2 = CQ_getStrangerInfo(appAuthCode, beingOperateQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
 	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberDecrease %I64d %I64d %I64d %I32d %I32d %s %s", fromGroup, fromQQ, beingOperateQQ, subType, sendTime, user_info1, user_info2);
@@ -229,12 +229,10 @@ CQEVENT(int32_t, __eventSystem_GroupMemberDecrease, 32)(int32_t subType, int32_t
 * beingOperateQQ 被操作QQ(即加群的QQ)
 */
 CQEVENT(int32_t, __eventSystem_GroupMemberIncrease, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, int64_t beingOperateQQ) {
-
-	const char* user_info1 = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, fromQQ, TRUE);
-	const char* user_info2 = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, beingOperateQQ, TRUE);
+	const char* user_info = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, beingOperateQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberIncrease %I64d %I64d %I64d %I32d %I32d %s %s", fromGroup, fromQQ, beingOperateQQ, subType, sendTime, user_info1, user_info2);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberIncrease %I64d %I64d %I64d %I32d %I32d %s", fromGroup, fromQQ, beingOperateQQ, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
 	return EVENT_IGNORE;
