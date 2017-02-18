@@ -11,6 +11,7 @@ CoolQ Socket API written in VC++.
 ## QQBot
 You can write your owned bot based on my [qqbot](https://github.com/yukixz/qqbot) in Python 3.
 
+Node.js的實現可參考附帶的QQBot.js。需要`npm install --save-dev encoding`。
 
 ## Protocol
 
@@ -26,43 +27,48 @@ A UDP frame contains one Prefix and multiple Fields.
 Prefix and Fields are joined by one space.
 
 ### Server Sent Frame
+
 ```
 Frame = Prefix (max 256) + Payload (max 32768)
+```
 
-Prefix = 'PrivateMessage'
-Payload = QQ + EncodedText
+一個Frame內部的各資訊以空白分隔。伺服端可接收以下訊息：
 
-Prefix = 'GroupMessage'
-Payload = GroupID + QQ + EncodedText
+* `ServerHello`
+* `PrivateMessage` + QQ + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
+* `GroupMessage` + GroupID + QQ + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
+* `DiscussMessage` + DiscussID + QQ + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
+* `GroupAdmin` + GroupId + SubType + QQ + SendTime + EncodedText (UserInfo)
+* `GroupMemberDecrease` + GroupID + AdminQQ + OperatedQQ + SubType + SendTime + EncodedText (Admin) + EncodedText (User)
+* `GroupMemberIncrease` + GroupID + AdminQQ + OperatedQQ + SubType + SendTime + EncodedText (User)
+* `GroupMemberInfo` + EncodedText (UserInfo)
+* `StrangerInfo` + EncodedText (UserInfo)
+* `LoginNick` + EncodedText (UserName)
 
-Prefix = 'DiscussMessage'
-Payload = DiscussID + QQ + EncodedText
+其中：
 
-Prefix = 'GroupMemberDecrease'
-Payload = GroupID + QQ + OperatedQQ
-
-Prefix = 'GroupMemberIncrease'
-Payload = GroupID + QQ + OperatedQQ
-
+```
 EncodedText = base64_encode( GBK_encode( text ) )
 ```
+
+UserInfo的格式可參考附帶的QQBot.js。
 
 ### Client Sent Frame
 ```
 Frame = Prefix (max 256) + Payload (max 32768)
+```
 
-Prefix = 'ClientHello'
-Payload = Port
+* `ClientHello` + Port
+* `PrivateMessage` + QQ + EncodedText
+* `GroupMessage` + GroupID + EncodedText
+* `DiscussMessage` + DiscussID + EncodedText
+* `GroupMemberInfo` + GroupID + QQ + 0或1（0表示利用快取結果）
+* `StrangerInfo` + QQ + 0或1
+* `LoginNick`
 
-Prefix = 'PrivateMessage'
-Payload = QQ + EncodedText
+其中：
 
-Prefix = 'GroupMessage'
-Payload = GroupID + EncodedText
-
-Prefix = 'DiscussMessage'
-Payload = DiscussID + EncodedText
-
+```
 EncodedText = base64_encode( GBK_encode( text ) )
 ```
 
