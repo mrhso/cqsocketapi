@@ -34,7 +34,7 @@ const buf2str = (buffer, left, right) => {
     return encoding.convert(temp, 'utf8', 'gbk').toString();
 };
 
-const replaceEmoji = (str) => message.replace(/\[CQ:emoji,id=(\d*)\]/g, (_, id) => String.fromCodePoint(id));
+const replaceEmoji = (str) => str.replace(/\[CQ:emoji,id=(\d*)\]/g, (_, id) => String.fromCodePoint(id));
 
 /**
  * 將Base64格式的使用者資訊轉為Object
