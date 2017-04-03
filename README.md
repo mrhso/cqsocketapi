@@ -32,15 +32,17 @@ Prefix and Fields are joined by one space.
 Frame = Prefix (max 256) + Payload (max 32768)
 ```
 
-一個Frame內部的各資訊以空白分隔。伺服端可接收以下訊息：
+一個Frame內部的各資訊以空白（U+0020）分隔。伺服端可接收以下訊息：
+
+_請加入資料型態信息_
 
 * `ServerHello`
-* `PrivateMessage` + QQ + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
-* `GroupMessage` + GroupID + QQ + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
-* `DiscussMessage` + DiscussID + QQ + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
-* `GroupAdmin` + GroupId + SubType + QQ + SendTime + EncodedText (UserInfo)
-* `GroupMemberDecrease` + GroupID + AdminQQ + OperatedQQ + SubType + SendTime + EncodedText (Admin) + EncodedText (User)
-* `GroupMemberIncrease` + GroupID + AdminQQ + OperatedQQ + SubType + SendTime + EncodedText (User)
+* `PrivateMessage` + QQNum + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
+* `GroupMessage` + GroupID + QQNum + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
+* `DiscussMessage` + DiscussID + QQNum + EncodedText (Message) + SubType + SendTime + EncodedText (UserInfo)
+* `GroupAdmin` + GroupId + SubType + QQNum + SendTime + EncodedText (UserInfo)
+* `GroupMemberDecrease` + GroupID + AdminQQNum + OperatedQQNum + SubType + SendTime + EncodedText (Admin) + EncodedText (User)
+* `GroupMemberIncrease` + GroupID + AdminQQNum + OperatedQQNum + SubType + SendTime + EncodedText (User)
 * `GroupMemberInfo` + EncodedText (UserInfo)
 * `StrangerInfo` + EncodedText (UserInfo)
 * `LoginNick` + EncodedText (UserName)
@@ -53,17 +55,33 @@ EncodedText = base64_encode( GBK_encode( text ) )
 
 UserInfo的格式可參考附帶的QQBot.js。
 
+#### Example Frame
+```
+GroupMessage 123456 10000 dGVzdCCy4srUILK7bmGBMIo3dmU=
+```
+應理解為：
+```JSON
+{
+  "type": "GroupMessage",
+  "GroupID": 123456,
+  "QQNum": 10000,
+  "EncodedText": "dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0="
+}
+```
+由於輸入來自伺服器，`GroupID`解讀為「來源群」。QQ中的很多ID，如QQ號、群號，都為正整數。
+編碼的`EncodedText`最终应解码至`test 测试 naïve💢`，其中`💢`（U+1F4A2）以CQ格式`[CQ:emoji,id=128162]`呈現。
+
 ### Client Sent Frame
 ```
 Frame = Prefix (max 256) + Payload (max 32768)
 ```
 
 * `ClientHello` + Port
-* `PrivateMessage` + QQ + EncodedText
+* `PrivateMessage` + QQNum + EncodedText
 * `GroupMessage` + GroupID + EncodedText
 * `DiscussMessage` + DiscussID + EncodedText
-* `GroupMemberInfo` + GroupID + QQ + 0或1（0表示利用快取結果）
-* `StrangerInfo` + QQ + 0或1
+* `GroupMemberInfo` + GroupID + QQNum + IsNotCached `Boolean01`（0表示利用快取結果）
+* `StrangerInfo` + QQNum + IsNotCached `Boolean01`
 * `LoginNick`
 
 其中：
@@ -72,7 +90,17 @@ Frame = Prefix (max 256) + Payload (max 32768)
 EncodedText = base64_encode( GBK_encode( text ) )
 ```
 
-### Example Frame
+#### Example Frame
+
 ```
-GroupMessage 123456 10000 dGVzdCCy4srU
+GroupMessage 123456 ZWZmaWNpZW5jeQ==
 ```
+理解為：
+```JSON
+{
+  "type": "GroupMessage",
+  "GroupID": 123456,
+  "base64Message": "ZWZmaWNpZW5jeQ=="
+}
+```
+此為傳送到群號123456的群的一條信息，內容為`efficiency`。
