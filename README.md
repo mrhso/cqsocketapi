@@ -50,7 +50,7 @@ _請加入資料型態信息_
 其中：
 
 ```
-EncodedText = base64_encode( GBK_encode( text ) )
+EncodedText = base64_encode( GB18030_encode( text ) )
 ```
 
 UserInfo的格式可參考附帶的QQBot.js。
@@ -87,7 +87,7 @@ Frame = Prefix (max 256) + Payload (max 32768)
 其中：
 
 ```
-EncodedText = base64_encode( GBK_encode( text ) )
+EncodedText = base64_encode( GB18030_encode( text ) )
 ```
 
 #### Example Frame
