@@ -51,7 +51,7 @@ void APIClient::add(const int port)
 		clients[free_i].hello = time(0);
 		clients[free_i].port = port;
 		clients[free_i].info.sin_family = AF_INET;
-		clients[free_i].info.sin_addr.s_addr = inet_addr("127.0.0.1");
+		clients[free_i].info.sin_addr.s_addr = inet_addr(CLIENT_ADDRESS);
 		clients[free_i].info.sin_port = htons(port);
 		sprintf_s(log, "Client added: %d.", port);
 		CQ_addLog(appAuthCode, CQLOG_INFO, "APIClient", log);
