@@ -16,7 +16,9 @@ APIClient *client = NULL;
 APIServer *server = NULL;
 int appAuthCode = -1;
 
+char SERVER_ADDRESS[16] = "127.0.0.1";
 int SERVER_PORT = 11235;
+char CLIENT_ADDRESS[16] = "127.0.0.1";
 int CLIENT_SIZE = 32;
 int CLIENT_TIMEOUT = 300;
 int FRAME_PREFIX_SIZE = 256;
@@ -88,7 +90,14 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 		CQ_addLog(appAuthCode, CQLOG_INFO, "提示信息", "配置文件不存在，将以默认值自动生成");
 	}
 
-	stringstream ss;  string value; int valueInt = -1;
+	stringstream ss;  string value; int valueInt = -1; char valueString[16];
+
+	#define tryGetString(id)\
+	GetPrivateProfileString("Server", #id, NULL, valueString, sizeof(valueString), configFile.data());\
+	if (strcmp(valueString, "") != 0) {strcpy_s(id, valueString);} else {\
+		WritePrivateProfileString("Server", #id, id, configFile.data());\
+	}\
+	ss.clear(); value.clear();valueString[0] = '\0';\
 
 	#define tryGetInt(id)\
 	valueInt = GetPrivateProfileInt("Server", #id, -1, configFile.data());\
@@ -98,7 +107,9 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 	}\
 	ss.clear(); value.clear();valueInt = -1;\
 
+	tryGetString(SERVER_ADDRESS);
 	tryGetInt(SERVER_PORT);
+	tryGetString(CLIENT_ADDRESS);
 	tryGetInt(CLIENT_SIZE);
 	tryGetInt(CLIENT_TIMEOUT);
 	tryGetInt(FRAME_PREFIX_SIZE);

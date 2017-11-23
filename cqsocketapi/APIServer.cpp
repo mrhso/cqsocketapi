@@ -114,7 +114,7 @@ APIServer::APIServer(void)
 	WSAStartup(MAKEWORD(1, 1), &wsa);
 	
 	localInfo.sin_family = AF_INET;
-	localInfo.sin_addr.s_addr = inet_addr("127.0.0.1");
+	localInfo.sin_addr.s_addr = inet_addr(SERVER_ADDRESS);
 	localInfo.sin_port = htons(SERVER_PORT);
 
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
