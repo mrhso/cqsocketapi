@@ -12,26 +12,43 @@
 'use strict';
 
 const dgram = require('dgram');
-const encoding = require('encoding');
+const { TextEncoder, TextDecoder } = require('text-encoding');
 const Buffer = require('buffer').Buffer;
 const EventEmitter = require('events').EventEmitter;
+
+const MAX_LEN = 1200;
 
 let gminfoCache = new Map();
 let pminfoCache = new Map();
 
-const base642str = (str) => {
-    let s = Buffer.from(str, 'base64').toString('binary');
-    return encoding.convert(s, 'utf8', 'gbk').toString();
+const g2u = new TextDecoder('gb18030');
+const u2g = new TextEncoder('gb18030', { NONSTANDARD_allowLegacyEncoding: true });
+
+const base642str = (str, unicode = false) => {
+    let buf = Buffer.from(str, 'base64');
+    if (unicode) {
+        return buf.toString();
+    } else {
+        return g2u.decode(buf);
+    }
 };
 
-const str2base64 = (str) => {
-    let s = encoding.convert(str, 'gbk', 'utf8');
-    return s.toString('base64');
+const str2base64 = (str, unicode = false) => {
+    if (unicode) {
+        return Buffer.from(str).toString('base64');
+    } else {
+        let s = u2g.encode(str);
+        return Buffer.from(s).toString('base64');
+    }
 };
 
-const buf2str = (buffer, left, right) => {
-    let temp = buffer.slice(left, right).toString('binary');
-    return encoding.convert(temp, 'utf8', 'gbk').toString();
+const buf2str = (buffer, left, right, unicode = false) => {
+    let temp = buffer.slice(left, right);
+    if (unicode) {
+        return temp.toString();
+    } else {
+        return g2u.decode(temp);
+    }
 };
 
 const replaceEmoji = (str) => str.replace(/\[CQ:emoji,id=(\d*)\]/g, (_, id) => String.fromCodePoint(id));
@@ -70,7 +87,7 @@ const parseStrangerInfo = (str) => {
         // 昵稱
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = replaceEmoji(buf2str(raw, offset, offset + strlen));
+        obj.name = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
         offset += strlen;
 
         // 性別
@@ -126,13 +143,13 @@ const parseGroupMemberInfo = (str) => {
         // 昵稱
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = replaceEmoji(buf2str(raw, offset, offset + strlen));
+        obj.name = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
         offset += strlen;
 
         // 群名片
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.groupCard = replaceEmoji(buf2str(raw, offset, offset + strlen));
+        obj.groupCard = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
         offset += strlen;
 
         // 性別
@@ -147,7 +164,7 @@ const parseGroupMemberInfo = (str) => {
         // 區域
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.area = buf2str(raw, offset, offset + strlen);
+        obj.area = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 入群時間戳
@@ -161,7 +178,7 @@ const parseGroupMemberInfo = (str) => {
         // 群等級
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.level = buf2str(raw, offset, offset + strlen);
+        obj.level = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 權限
@@ -176,7 +193,7 @@ const parseGroupMemberInfo = (str) => {
         // 群專屬名片
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.honor = replaceEmoji(buf2str(raw, offset, offset + strlen));
+        obj.honor = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
         offset += strlen;
 
         // 專屬名片過期時間
@@ -211,7 +228,12 @@ const faces = {
     130:"激动",131:"街舞",132:"献吻",133:"左太极",134:"右太极",135:"招财猫",136:"双喜",137:"鞭炮",138:"灯笼",139:"麻将發",
     140:"K歌",141:"购物",142:"邮件",143:"象棋帥",144:"喝彩",145:"祈祷",146:"爆筋",147:"棒棒糖",148:"喝奶",149:"下面条",
     150:"香蕉",151:"飞机",152:"开车",153:"高铁左头",154:"车厢",155:"高铁右头",156:"多云",157:"下雨",158:"钞票",159:"熊猫",
-    160:"灯泡",161:"风车",162:"闹钟",163:"打伞",164:"彩球",165:"钻戒",166:"沙发",167:"纸巾",168:"药",169:"手枪",170:"青蛙"
+    160:"灯泡",161:"风车",162:"闹钟",163:"打伞",164:"彩球",165:"钻戒",166:"沙发",167:"纸巾",168:"药",169:"手枪",170:"青蛙",
+    171:"茶",172:"眨眼睛",173:"泪奔",174:"无奈",175:"卖萌",176:"小纠结",177:"喷血",178:"斜眼笑",179:"doge",180:"惊喜",
+    181:"骚扰",182:"笑哭",183:"我最美",184:"河蟹",185:"羊驼",186:"表情"/*未定義*/,187:"幽灵",188:"蛋",189:"表情"/*未定義*/,190:"菊花",
+    191:"表情"/*未定義*/,192:"红包",193:"大笑",194:"不开心",195:"表情"/*未定義*/,196:"表情"/*未定義*/,197:"冷漠",198:"呃",199:"好棒",200:"拜托",
+    201:"点赞",202:"无聊",203:"托脸",204:"吃",205:"送花",206:"害怕",207:"花痴",208:"小样儿",209:"表情"/*未定義*/,210:"飙泪",
+    211:"我不看",212:"托腮"
 };
 
 /**
@@ -219,10 +241,10 @@ const faces = {
  * @param  {string} message 已解碼並轉為utf-8之後的訊息
  * @return {string} 去除CQ碼之後的文字
  */
-const parseMessage = (message) => {
+const parseMessage = (message, isPro) => {
     let images = [];
     let records = [];
-    let ats = [];
+    let at = {};
 
     let text = message.replace(/\[CQ:(.*?),(.*?)\]/g, (_, type, param) => {
         let tmp;
@@ -245,9 +267,16 @@ const parseMessage = (message) => {
                 }
                 break;
 
-            //case 'bface':
-            //    // 可能是[CQ:bface][中箭]，這樣就沒有用了
-            //    return '<原创表情>';
+            case 'bface':
+                // CoolQ Air: [CQ:bface][中箭]
+                // CoolQ Pro: [CQ:bface,p=10278,id=42452682486D91909B7A513B8BFBC3C6]
+                if (isPro) {
+                    // TODO 取得表情內容
+                    return '[原创表情]';
+                } else {
+                    return '';
+                }
+                break;
 
             case 'sface':
                 return '[小表情]';
@@ -265,7 +294,7 @@ const parseMessage = (message) => {
 
             case 'record':
                 // [CQ:record,file=XXX.amr] 或 XXX.silk（對講或變音）
-                tmp = param.match(/file=(.*)/);
+                tmp = param.match(/file=(.*?)(,|$)/);
                 if (tmp && tmp[1]) {
                     records.push(tmp[1]);
                     return '[语音]';
@@ -279,10 +308,10 @@ const parseMessage = (message) => {
                 if (tmp && tmp[1]) {
                     if (tmp[1] === 'all') {
                         return '@全体成员';
+                    } else {
+                        at[parseInt(tmp[1])] = true;
+                        return `@${tmp[1]}`;                // 只給出QQ號，至於應該@什麼內容，讓使用者處理吧
                     }
-
-                    ats.push(parseInt(tmp[1]));
-                    return `@${tmp[1]}`;                // 只給出QQ號，至於應該@什麼內容，讓使用者處理吧
                 } else {
                     return '';
                 }
@@ -301,6 +330,12 @@ const parseMessage = (message) => {
                 return '';
         }
     });
+
+    // at去重
+    let ats = [];
+    for (let k in at) {
+        ats.push(k);
+    }
 
     text = text.replace(/\[CQ:bface\]/g, '')
                 .replace(/&#91;/gu, '[')
@@ -327,6 +362,8 @@ class QQBot extends EventEmitter {
         this._nick = '';
         this._timeoutCounter = 0;
         this._timeoutTimer = null;
+        this._isPro = options.CoolQPro && true;
+        this._unicode = options.unicode && true;
     }
 
     _log(message, isError) {
@@ -380,11 +417,25 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'LoginNick':
-                        this._nick = base642str(frames[1]);
+                        this._nick = base642str(frames[1], this._unicode);
                         break;
 
                     case 'GroupMessage':
-                        msgdata = parseMessage(base642str(frames[3]));
+                        msgdata = parseMessage(base642str(frames[3], this._unicode), this._isPro);
+                        let userinfo = parseGroupMemberInfo(frames[6]);
+
+                        if (this._isPro && parseInt(frames[2]) === 80000000) {
+                            // 匿名消息
+
+                            let info = base642str(frames[7], this._unicode);
+                            let nick = info.substring(10).split('\0')[0];
+
+                            userinfo = {
+                                qq: 80000000,
+                                name: '匿名消息',
+                                groupCard: nick,
+                            };
+                        }
 
                         this.emit('GroupMessage', {
                             group: parseInt(frames[1]),
@@ -393,12 +444,12 @@ class QQBot extends EventEmitter {
                             extra: msgdata.extra,
                             type:  parseInt(frames[4]),
                             time:  parseInt(frames[5]),
-                            user:  parseGroupMemberInfo(frames[6]),
+                            user:  userinfo,
                         });
                         break;
 
                     case 'PrivateMessage':
-                        msgdata = parseMessage(base642str(frames[2]));
+                        msgdata = parseMessage(base642str(frames[2], this._unicode), this._isPro);
 
                         this.emit('PrivateMessage', {
                             from: parseInt(frames[1]),
@@ -411,7 +462,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'DiscussMessage':
-                        msgdata = parseMessage(base642str(frames[3]));
+                        msgdata = parseMessage(base642str(frames[3], this._unicode), this._isPro);
 
                         this.emit('DiscussMessage', {
                             group: parseInt(frames[1]),
@@ -531,7 +582,7 @@ class QQBot extends EventEmitter {
 
     _rawSend(msg) {
         try {
-            this._socket.send(msg, 0, msg.length, this._serverPort, this._serverHost);
+            this._socket.send(msg, 0, msg.length < MAX_LEN ? msg.length : MAX_LEN, this._serverPort, this._serverHost);
         } catch (ex) {
             this.emit('Error', {
                 event: 'send',
@@ -541,31 +592,42 @@ class QQBot extends EventEmitter {
         }
     }
 
-    send(type, target, message) {
+    escape(text) {
+        return text.replace(/&/gu, '&amp;')
+                .replace(/\[/gu, '&#91;')
+                .replace(/\]/gu, '&#93;');
+    }
+
+    send(type, target, message, options) {
         if (type === 'PrivateMessage' || type === 'GroupMessage' || type === 'DiscussMessage') {
-            let escapedmessage = message
-                                    .replace(/&/gu, '&amp;')
-                                    .replace(/\[/gu, '&#91;')
-                                    .replace(/\]/gu, '&#93;');
-            let answer = `${type} ${target} ${str2base64(escapedmessage)}`;
+            let message2 = message;
+            if (!(options && options.noEscape)) {
+                message2 = this.escape(message);
+            }
+
+            let answer = `${type} ${target} ${str2base64(message2, this._unicode)}`;
             this._rawSend(answer);
         }
     }
 
-    sendPrivateMessage(qq, message) {
-        this.send('PrivateMessage', qq, message);
+    sendPrivateMessage(qq, message, options) {
+        this.send('PrivateMessage', qq, message, options);
     }
 
-    sendGroupMessage(group, message) {
-        this.send('GroupMessage', group, message);
+    sendGroupMessage(group, message, options) {
+        this.send('GroupMessage', group, message, options);
     }
 
-    sendDiscussMessage(discussid, message) {
-        this.send('DiscussMessage', discussid, message);
+    sendDiscussMessage(discussid, message, options) {
+        this.send('DiscussMessage', discussid, message, options);
     }
 
     get nick() {
         return this._nick;
+    }
+
+    get isCoolQPro() {
+        return this._isPro;
     }
 
     groupMemberInfo(group, qq, nocache = true) {
