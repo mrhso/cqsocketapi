@@ -1,6 +1,7 @@
 # CQSocketAPI
 CoolQ Socket API written in VC++.
 
+[![Build status](https://ci.appveyor.com/api/projects/status/github/mrhso/cqsocketapi?svg=true)](https://ci.appveyor.com/project/mrhso/cqsocketapi)
 
 ## Installation
 1. Place `org.dazzyd.cqsocketapi.cpk` into CoolQ app folder.
