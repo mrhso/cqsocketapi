@@ -1,0 +1,15 @@
+skip_tags: true
+version: '{branch} build {build}'
+configuration: Release
+
+build:
+  project: .\cqsocketapi.sln
+  verbosity: minimal
+
+artifacts:
+  - path: Release\org.dazzyd.cqsocketapi.dll
+    name: cqsocketapi dll
+
+branches:
+  only:
+    - nodejs-CI
