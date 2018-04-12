@@ -12,7 +12,7 @@ CoolQ Socket API written in VC++.
 ## QQBot
 You can write your owned bot based on my [qqbot](https://github.com/yukixz/qqbot) in Python 3.
 
-Node.js的實現可參考附帶的QQBot.js。需要`npm install --save-dev encoding`。
+Node.js 的實現可參考附帶的 QQBot.js。需要`npm install --save-dev encoding`。
 
 ## Protocol
 
@@ -33,7 +33,7 @@ Prefix and Fields are joined by one space.
 Frame = Prefix (max 256) + Payload (max 32768)
 ```
 
-一個Frame內部的各資訊以空白（U+0020）分隔。伺服端可接收以下訊息：
+一個 Frame 內部的各資訊以空白（U+0020）分隔。伺服端可接收以下訊息：
 
 _請加入資料型態信息_
 
@@ -54,7 +54,7 @@ _請加入資料型態信息_
 EncodedText = base64_encode( GB18030_encode( text ) )
 ```
 
-UserInfo的格式可參考附帶的QQBot.js。
+UserInfo 的格式可參考附帶的 QQBot.js。
 
 #### Example Frame
 ```
@@ -69,8 +69,8 @@ GroupMessage 123456 10000 dGVzdCCy4srUILK7bmGBMIo3dmU=
   "EncodedText": "dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0="
 }
 ```
-由於輸入來自伺服器，`GroupID`解讀為「來源群」。QQ中的很多ID，如QQ號、群號，都為正整數。
-編碼的`EncodedText`最终应解码至`test 测试 naïve💢`，其中`💢`（U+1F4A2）以CQ格式`[CQ:emoji,id=128162]`呈現。
+由於輸入來自伺服器，`GroupID`解讀為「來源群」。QQ 中的很多 ID，如 QQ 號、群號，都為正整數。
+編碼的`EncodedText`最终应解码至`test 测试 naïve💢`，其中`💢`（U+1F4A2）以 CQ 格式`[CQ:emoji,id=128162]`呈現。
 
 ### Client Sent Frame
 ```
@@ -81,7 +81,7 @@ Frame = Prefix (max 256) + Payload (max 32768)
 * `PrivateMessage` + QQNum + EncodedText
 * `GroupMessage` + GroupID + EncodedText
 * `DiscussMessage` + DiscussID + EncodedText
-* `GroupMemberInfo` + GroupID + QQNum + IsNotCached `Boolean01`（0表示利用快取結果）
+* `GroupMemberInfo` + GroupID + QQNum + IsNotCached `Boolean01`（0 表示利用快取結果）
 * `StrangerInfo` + QQNum + IsNotCached `Boolean01`
 * `LoginNick`
 
@@ -104,4 +104,4 @@ GroupMessage 123456 ZWZmaWNpZW5jeQ==
   "base64Message": "ZWZmaWNpZW5jeQ=="
 }
 ```
-此為傳送到群號123456的群的一條信息，內容為`efficiency`。
+此為傳送到群號 123456 的群的一條信息，內容為`efficiency`。
