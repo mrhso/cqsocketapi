@@ -9,7 +9,3 @@ build:
 artifacts:
   - path: Release\me.cqp.ishisashi.cqsocketapi.dll
     name: cqsocketapi dll
-
-branches:
-  only:
-    - nodejs-CI

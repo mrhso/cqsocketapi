@@ -1,12 +1,12 @@
 {
     "ret":1,
     "apiver":9,
-    "appid":"org.dazzyd.cqsocketapi",
-    "name":"CoolQ Socket API",
+    "appid":"me.cqp.ishisashi.cqsocketapi",
+    "name":"CoolQ Socket API (Node.js)",
     "version":"2.2.0",
     "version_id":1,
-    "author":"Dazzy Ding",
-    "description":"CoolQ Scoket API",
+    "author":"Dazzy Ding, vjudge1, Ishisashi",
+    "description":"CoolQ Scoket API (Node.js)",
     "event":[
         {
             "id":1,
