@@ -64,10 +64,10 @@
     <Library Include="CQP.lib" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="org.dazzyd.cqsocketapi.json" />
+    <None Include="me.cqp.ishisashi.cqsocketapi.json" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="org.dazzyd.cqsocketapi.rc">
+    <ResourceCompile Include="me.cqp.ishisashi.cqsocketapi.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

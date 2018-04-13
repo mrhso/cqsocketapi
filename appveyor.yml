@@ -7,5 +7,5 @@ build:
   verbosity: minimal
 
 artifacts:
-  - path: Release\org.dazzyd.cqsocketapi.dll
+  - path: Release\me.cqp.ishisashi.cqsocketapi.dll
     name: cqsocketapi dll

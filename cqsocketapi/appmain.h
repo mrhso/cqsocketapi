@@ -1,7 +1,7 @@
 #pragma once
 
 // CoolQ
-#define CQAPPID "org.dazzyd.cqsocketapi"
+#define CQAPPID "me.cqp.ishisashi.cqsocketapi"
 #define CQAPPINFO CQAPIVERTEXT "," CQAPPID
 
 // Socket API
