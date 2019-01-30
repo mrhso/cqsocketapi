@@ -275,7 +275,6 @@ void prcsGetStrangerInfo(const char *payload) {
 	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "StrangerInfo %s", info);
 	client->send(buffer, strlen(buffer));
 
-	delete[] encoded_info;
 	delete[] buffer;
 }
 
