@@ -231,16 +231,12 @@ void prcsGetGroupMemberInfo(const char *payload) {
 	int64_t group, qq;
 	sscanf_s(payload, "%I64d %I64d %I32d", &group, &qq, &nocache);
 
-	//char* encoded_info = new char[FRAME_PAYLOAD_SIZE];
-
 	auto info = CQ_getGroupMemberInfoV2(appAuthCode, group, qq, nocache);
-	//Base64encode(encoded_info, info, strlen(info));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "SrvGroupMemberInfo %s", info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberInfo %s", info);
 	client->send(buffer, strlen(buffer));
 
-	//delete[] encoded_info;
 	delete[] buffer;
 }
 
@@ -261,7 +257,7 @@ void prcsGetGroupMemberList(const char *payload) {
 	}
 	Base64encode(encoded_path, filename.c_str(), strlen(filename.c_str()));
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "SrvGroupMemberList %s", encoded_path);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s", encoded_path);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_path;
@@ -273,13 +269,10 @@ void prcsGetStrangerInfo(const char *payload) {
 	int64_t qq;
 	sscanf_s(payload, "%I64d %I32d", &qq, &nocache);
 
-	char* encoded_info = new char[FRAME_PAYLOAD_SIZE];
-
 	auto info = CQ_getStrangerInfo(appAuthCode, qq, nocache);
-	Base64encode(encoded_info, info, strlen(info));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "SrvStrangerInfo %s", encoded_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "StrangerInfo %s", info);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_info;
@@ -293,7 +286,7 @@ void prcsGetCookies() {
 	Base64encode(encoded_cookies, cookies, strlen(cookies));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "SrvCookies %s", encoded_cookies);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Cookies %s", encoded_cookies);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_cookies;
@@ -305,7 +298,7 @@ void prcsGetCsrfToken() {
 	int32_t token = CQ_getCsrfToken(appAuthCode);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "SrvCsrfToken %I32d", token);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "CsrfToken %I32d", token);
 	client->send(buffer, strlen(buffer));
 
 	delete[] buffer;
@@ -316,7 +309,7 @@ void prcsGetLoginQQ() {
 	int64_t qq = CQ_getLoginQQ(appAuthCode);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "SrvLoginQQ %I64d", qq);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "LoginQQ %I64d", qq);
 	client->send(buffer, strlen(buffer));
 
 	delete[] buffer;
@@ -329,7 +322,7 @@ void prcsGetLoginNickname() {
 	Base64encode(encoded_nickname, nickname, strlen(nickname));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "SrvLoginNickname %s", encoded_nickname);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "LoginNickname %s", encoded_nickname);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_nickname;
@@ -343,7 +336,7 @@ void prcsGetAppDirectory() {
 	Base64encode(encoded_appDir, appDir, strlen(appDir));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "SrvAppDirectory %s", encoded_appDir);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "AppDirectory %s", encoded_appDir);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_appDir;

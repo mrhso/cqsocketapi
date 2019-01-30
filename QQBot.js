@@ -55,7 +55,7 @@ const replaceEmoji = (str) => str.replace(/\[CQ:emoji,id=(\d*)\]/g, (_, id) => S
 
 /**
  * 將 Base64 格式的使用者資訊轉為 Object
- * @param  {string} str 從 Server 接收的 base64 碼
+ * @param  {string} str 從 Server 接收的 Base64 碼
  * @return {object}     包含具體使用者資訊的 Object
  */
 const parseStrangerInfo = (str) => {
@@ -95,7 +95,9 @@ const parseStrangerInfo = (str) => {
         obj.gender = gender === 0 ? 'male' : (gender === 255 ? '' : 'female');
         offset += 4;
 
-        // TODO: 性別後面有 4 個 00，不知道是什麼東西
+        // 年齡
+        obj.age = raw.readUInt32BE(offset);
+        offset += 4;
 
         let r = Object.freeze(obj);
         pminfoCache.set(str, r);
@@ -106,7 +108,7 @@ const parseStrangerInfo = (str) => {
 
 /**
  * 將 Base64 格式的群成員資訊轉為 Object
- * @param  {string} str 從 Server 接收的 base64 碼
+ * @param  {string} str 從 Server 接收的 Base64 碼
  * @return {object}     包含具體使用者資訊的 Object
  */
 const parseGroupMemberInfo = (str) => {
@@ -311,9 +313,10 @@ const iOSFaces = { /*iOS（含 HD）版定義*/
     211:"我不看",212:"托腮",213:"哇哦"
 };
 
+
 /**
  * 去除接收訊息中的 CQ 碼（酷 Q 專用碼，包括表情、繪文字、相片等資料），將其換為「[表情名稱]」、「[图片]」等文字。
- * @param  {string} message 已解碼並轉為 UTF-8 之後的訊息
+ * @param  {string} Message 已解碼並轉為 UTF-8 之後的訊息
  * @return {string} 去除 CQ 碼之後的文字
  */
 const parseMessage = (message, isPro) => {
@@ -585,7 +588,7 @@ class QQBot extends EventEmitter {
                     case 'GroupMemberIncrease':
                         this.emit('GroupMemberIncrease', {
                             group:       parseInt(frames[1]),
-                            admin:       parseInt(frames[2]),      // 管理員QQ
+                            admin:       parseInt(frames[2]),      // 管理員 QQ
                             target:      parseInt(frames[3]),
                             type:        parseInt(frames[4]),      // 1: 管理員同意，2: 管理員邀請
                             time:        parseInt(frames[5]),
