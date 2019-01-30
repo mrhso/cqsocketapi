@@ -130,21 +130,17 @@ CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t sendTime, int64
 */
 CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *fromAnonymous, const char *msg, int32_t font) {
 
-	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE / 2];
+	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_msg, msg, strlen(msg));
 
 	const char* user_info = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, fromQQ, TRUE);
 
-	char* encoded_Anonymous = new char[FRAME_PAYLOAD_SIZE / 2];
-	Base64encode(encoded_Anonymous, fromAnonymous, strlen(fromAnonymous));
-
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMessage %I64d %I64d %s %I32d %I32d %s %s", fromGroup, fromQQ, encoded_msg, subType, sendTime, user_info, encoded_Anonymous);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMessage %I64d %I64d %s %I32d %I32d %s %s", fromGroup, fromQQ, encoded_msg, subType, sendTime, user_info, fromAnonymous);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;
 	delete[] user_info;
-	delete[] encoded_Anonymous;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
