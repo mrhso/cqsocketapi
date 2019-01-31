@@ -115,20 +115,20 @@ void prcsSetGroupWholeBan(const char *payload) {
 
 void prcsSetGroupAnonymousBan(const char *payload) {
 	int64_t group, duration;
-	char* anomymous = new char[FRAME_PAYLOAD_SIZE];
-	sscanf_s(payload, "%I64d %[^\n] %I64d", &group, anomymous, sizeof(char) * FRAME_PAYLOAD_SIZE, &duration);
+	char* anonymous = new char[FRAME_PAYLOAD_SIZE];
+	sscanf_s(payload, "%I64d %[^ ] %I64d", &group, anonymous, sizeof(char) * FRAME_PAYLOAD_SIZE, &duration);
 
-	CQ_setGroupAnonymousBan(appAuthCode, group, anomymous, duration);
+	CQ_setGroupAnonymousBan(appAuthCode, group, anonymous, duration);
 
-	delete[] anomymous;
+	delete[] anonymous;
 }
 
 void prcsSetGroupAnonymous(const char *payload) {
-	CQBOOL enableanomymous;
+	CQBOOL enableanonymous;
 	int64_t group;
-	sscanf_s(payload, "%I64d %I32d", &group, &enableanomymous);
+	sscanf_s(payload, "%I64d %I32d", &group, &enableanonymous);
 
-	CQ_setGroupAnonymous(appAuthCode, group, enableanomymous);
+	CQ_setGroupAnonymous(appAuthCode, group, enableanonymous);
 }
 
 void prcsSetGroupCard(const char *payload) {
@@ -156,7 +156,7 @@ void prcsSetGroupLeave(const char *payload) {
 void prcsSetGroupSpecialTitle(const char *payload) {
 	int64_t group, qq, duration;
 	char* newspecialtitle = new char[FRAME_PAYLOAD_SIZE];
-	sscanf_s(payload, "%I64d %I64d %[^\n] %I64d", &group, &qq, newspecialtitle, sizeof(char) * FRAME_PAYLOAD_SIZE, &duration);
+	sscanf_s(payload, "%I64d %I64d %[^ ] %I64d", &group, &qq, newspecialtitle, sizeof(char) * FRAME_PAYLOAD_SIZE, &duration);
 
 	char* decodedNewspecialtitle = new char[FRAME_PAYLOAD_SIZE];
 	Base64decode(decodedNewspecialtitle, newspecialtitle);
@@ -179,7 +179,7 @@ void prcsFriendAddRequest(const char *payload) {
 	char* responseflag = new char[FRAME_PAYLOAD_SIZE / 2];
 	char* remark = new char[FRAME_PAYLOAD_SIZE / 2];
 
-	sscanf_s(payload, "%[^\n] %I32d %[^\n]",
+	sscanf_s(payload, "%[^ ] %I32d %[^\n]",
 		responseflag, sizeof(char) * FRAME_PAYLOAD_SIZE / 2,
 		&responseoperation,
 		remark, sizeof(char) * FRAME_PAYLOAD_SIZE / 2);
@@ -203,7 +203,7 @@ void prcsGroupAddRequest(const char *payload) {
 	char* responseflag = new char[FRAME_PAYLOAD_SIZE / 2];
 	char* reason = new char[FRAME_PAYLOAD_SIZE / 2];
 
-	sscanf_s(payload, "%[^\n] %I32d %I32d %[^\n]",
+	sscanf_s(payload, "%[^ ] %I32d %I32d %[^\n]",
 		responseflag, sizeof(char) * FRAME_PAYLOAD_SIZE / 2,
 		&requesttype,
 		&responseoperation,
