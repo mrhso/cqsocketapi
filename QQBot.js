@@ -15,6 +15,7 @@ const dgram = require('dgram');
 const { TextEncoder, TextDecoder } = require('text-encoding');
 const Buffer = require('buffer').Buffer;
 const EventEmitter = require('events').EventEmitter;
+const readFileSync = require("fs").readFileSync;
 
 const MAX_LEN = 0; // 發送時消息 Base64 的最大長度，0 為不限制
 
@@ -189,7 +190,7 @@ const parseGroupMemberInfo = (str) => {
         offset += 4;
 
         // 是否有不良記錄
-        obj.hasBadRecord = raw.readUInt32BE(offset) && true;
+        obj.hasBadRecord = Boolean(raw.readUInt32BE(offset));
         offset += 4;
 
         // 群專屬名片
@@ -203,7 +204,7 @@ const parseGroupMemberInfo = (str) => {
         offset += 4;
 
         // 能否修改群名片
-        obj.isGroupCardEditable = raw.readUInt32BE(offset) && true;
+        obj.isGroupCardEditable = Boolean(raw.readUInt32BE(offset));
         offset += 4;
 
         r = Object.freeze(obj);
@@ -444,14 +445,15 @@ class QQBot extends EventEmitter {
     constructor (options = {}) {
         super();
         this._started = false;
-        this._debug = options.debug || false;
+        this._debug = options.debug;
         this._serverHost = options.host || '127.0.0.1';
         this._serverPort = options.port || 11235;
         this._nick = '';
         this._timeoutCounter = 0;
         this._timeoutTimer = null;
-        this._isPro = options.CoolQPro && true;
-        this._unicode = options.unicode && true;
+        this._isPro = options.CoolQPro;
+        this._unicode = options.unicode;
+        this._qq = NaN;
     }
 
     _log(message, isError) {
@@ -502,10 +504,17 @@ class QQBot extends EventEmitter {
                 switch (command) {
                     case 'ServerHello':
                         this._timeoutCounter = 0;
+                        this.emit('ServerHello', {
+                            timeout: parseInt(frames[1]),
+                            prefix:  parseInt(frames[2]),
+                            payload: parseInt(frames[3]),
+                            frame:   parseInt(frames[4]),
+                        });
                         break;
 
                     case 'LoginNick':
                         this._nick = base642str(frames[1], this._unicode);
+                        this.emit('LoginNick', this._nick);
                         break;
 
                     case 'GroupMessage':
@@ -522,6 +531,7 @@ class QQBot extends EventEmitter {
                                 qq: 80000000,
                                 name: '匿名消息',
                                 groupCard: nick,
+                                anonymous: frames[7],
                             };
                         }
 
@@ -604,6 +614,45 @@ class QQBot extends EventEmitter {
                         this.emit('StrangerInfo', parseStrangerInfo(frames[1]));
                         break;
 
+                    case 'GroupMemberList':
+                        let path = base642str(frames[1], this._unicode);
+                        let raw = Buffer.from(readFileSync(path).toString(), 'base64');
+                        let offset;
+                        // 人數
+                        let number = raw.readUInt32BE(0);
+                        offset = 4;
+                        // 成員信息
+                        let info = [];
+                        while (offset < raw.length) {
+                            let o = raw.readUInt16BE(offset) + 2;
+                            info.push(parseGroupMemberInfo(raw.slice(offset + 2, offset + o)));
+                            offset += o;
+	                    }
+
+                        this.emit('GroupMemberList', {
+                            number : number,
+                            info   : info,
+                        });
+                        break;
+
+                    case 'Cookies':
+                        // 沒見過把 Cookie 單獨抽一部分使用的，所以整個輸出
+                        this.emit('Cookies', base642str(frames[1], this._unicode));
+                        break;
+
+                    case 'CsrfToken':
+                        this.emit('CsrfToken', frames[1]);
+                        break;
+
+                    case 'LoginQQ':
+                        this._qq = frames[1];
+                        this.emit('LoginQQ', this._qq);
+                        break;
+
+                    case 'AppDirectory':
+                        this.emit('AppDirectory', frames[1]);
+                        break;
+
                     default:
                         // 其他訊息
                         this._log(`Unknown message: ${msg.toString()}`);
@@ -634,13 +683,23 @@ class QQBot extends EventEmitter {
             sayHello();
 
             setTimeout(() => {
-                let hello = `LoginNick`;
+                let get_nick = `LoginNick`;
+                let get_qq = `LoginQQ`;
                 try {
-                    this._socket.send(hello, 0, hello.length, this._serverPort, this._serverHost);
+                    this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
                 } catch (ex) {
                     this.emit('Error', {
                         event: 'connect',
                         context: 'LoginNick',
+                        error: ex,
+                    });
+                }
+                try {
+                    this._socket.send(get_qq, 0, get_qq.length, this._serverPort, this._serverHost);
+                } catch (ex) {
+                    this.emit('Error', {
+                        event: 'connect',
+                        context: 'LoginQQ',
                         error: ex,
                     });
                 }
@@ -706,8 +765,8 @@ class QQBot extends EventEmitter {
         this.send('GroupMessage', group, message, options);
     }
 
-    sendDiscussMessage(discussid, message, options) {
-        this.send('DiscussMessage', discussid, message, options);
+    sendDiscussMessage(discuss, message, options) {
+        this.send('DiscussMessage', discuss, message, options);
     }
 
     get nick() {
@@ -718,19 +777,116 @@ class QQBot extends EventEmitter {
         return this._isPro;
     }
 
-    groupMemberInfo(group, qq, nocache = true) {
-        let cmd = `GroupMemberInfo ${group} ${qq} ${nocache ? 1 : 0}`;
+    groupMemberInfo(group, qq, noCache = true) {
+        let cmd = `GroupMemberInfo ${group} ${qq} ${noCache ? 1 : 0}`;
         this._rawSend(cmd);
     }
 
-    strangerInfo(qq, nocache = true) {
-        let cmd = `StrangerInfo ${qq} ${nocache ? 1 : 0}`;
+    strangerInfo(qq, noCache = true) {
+        let cmd = `StrangerInfo ${qq} ${noCache ? 1 : 0}`;
         this._rawSend(cmd);
     }
 
     groupBan(group, qq, duration = 1800) {
         let cmd = `GroupBan ${group} ${qq} ${duration}`;
         this._rawSend(cmd);
+    }
+
+    loginNick(qq, times = 1) {
+        this._rawSend('LoginNick');
+    }
+
+    sendLike(qq, times = 1) {
+        let cmd = `Like ${qq} ${times}`;
+        this._rawSend(cmd);
+    }
+
+    // rejectAddRequest 設定為 true 則不再接收此人加群申請，慎用
+    groupKick(group, qq, rejectAddRequest = false) {
+        let cmd = `GroupKick ${group} ${qq} ${rejectAddRequest ? 1 : 0}`;
+        this._rawSend(cmd);
+    }
+
+    groupAdmin(group, qq, setAdmin = true) {
+        let cmd = `GroupAdmin ${group} ${qq} ${setAdmin ? 1 : 0}`;
+        this._rawSend(cmd);
+    }
+
+    groupWholeBan(group, enableBan = true) {
+        let cmd = `GroupWholeBan ${group} ${enableBan ? 1 : 0}`;
+        this._rawSend(cmd);
+    }
+
+    // anonymous 為 GroupMessage 收到的一串記錄匿名信息之 Base64（即 user.anonymous）
+    groupAnonymousBan(group, anonymous, duration = 1800) {
+        let cmd = `GroupAnonymousBan ${group} ${anonymous} ${duration}`;
+        this._rawSend(cmd);
+    }
+
+    groupAnonymous(group, enableAnonymous = true) {
+        let cmd = `GroupAnonymous ${group} ${enableAnonymous ? 1 : 0}`;
+        this._rawSend(cmd);
+    }
+
+    groupCard(group, qq, newCard) {
+        let cmd = `GroupCard ${group} ${qq} ${str2base64(newCard, this._unicode)}`;
+        this._rawSend(cmd);
+    }
+
+    // isDismiss 為 true 則解散本群，否則退出
+    groupLeave(group, isDismiss = false) {
+        let cmd = `GroupLeave ${group} ${isDismiss ? 1 : 0}`;
+        this._rawSend(cmd);
+    }
+
+    // duration 設定為 -1 的話則頭銜永久有效
+    groupSpecialTitle(group, qq, newSpecialTitle, duration = -1) {
+        let cmd = `GroupSpecialTitle ${group} ${qq} ${newSpecialTitle} ${duration}`;
+        this._rawSend(cmd);
+    }
+
+    discussLeave(discuss) {
+        let cmd = `DiscussLeave ${discuss}`;
+        this._rawSend(cmd);
+    }
+
+    friendAddRequest(responseFlag, responseOperation, remark = '') {
+        let cmd = `FriendAddRequest ${str2base64(responseFlag, this._unicode)} ${responseOperation} ${str2base64(remark, this._unicode)}`;
+        this._rawSend(cmd);
+    }
+
+    groupAddRequest(responseFlag, requestType, responseOperation, reason = '') {
+        let cmd = `GroupAddRequest ${str2base64(responseFlag, this._unicode)} ${requestType} ${responseOperation} ${str2base64(reason, this._unicode)}`;
+        this._rawSend(cmd);
+    }
+
+    groupMemberList(group) {
+        let cmd = `GroupMemberList ${group}`;
+        this._rawSend(cmd);
+    }
+
+    cookies() {
+        let cmd = `Cookies`;
+        this._rawSend(cmd);
+    }
+
+    csrfToken() {
+        let cmd = `CsrfToken`;
+        this._rawSend(cmd);
+    }
+
+    loginQQ() {
+        let cmd = `LoginQQ`;
+        this._rawSend(cmd);
+    }
+
+    appDirectory() {
+        let cmd = `AppDirectory`;
+        this._rawSend(cmd);
+    }
+
+    get qq() {
+        return this._qq;
     }
 }
 
