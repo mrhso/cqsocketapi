@@ -1,5 +1,5 @@
-# CQSocketAPI
-CoolQ Socket API written in VC++.
+# CoolQ Socket API
+VC++ 写的 CoolQ Socket API。
 
 [![Download](https://api.bintray.com/packages/mrhso/cqsocketapi/nodejs/images/download.svg)](https://bintray.com/mrhso/cqsocketapi/nodejs/_latestVersion) [![Build status](https://ci.appveyor.com/api/projects/status/dfrm0xppsokcr2ks?svg=true)](https://ci.appveyor.com/project/mrhso/cqsocketapi)
 

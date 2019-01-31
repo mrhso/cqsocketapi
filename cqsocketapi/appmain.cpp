@@ -233,7 +233,7 @@ CQEVENT(int32_t, __eventFriend_Add, 16)(int32_t subType, int32_t sendTime, int64
 	const char* user_info = CQ_getStrangerInfo(appAuthCode, fromQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "FriendAdded %I32d %I64d", fromQQ, subType, sendTime, user_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "FriendAdded %I64d %I32d %I32d %s", fromQQ, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
 	delete[] user_info;
@@ -256,7 +256,7 @@ CQEVENT(int32_t, __eventRequest_AddFriend, 24)(int32_t subType, int32_t sendTime
 	const char* user_info = CQ_getStrangerInfo(appAuthCode, fromQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "RequestAddFriend %I32d %I64d %s %s", fromQQ, encoded_msg, encoded_flag, subType, sendTime, user_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "RequestAddFriend %I64d %s %s %I32d %I32d %s", fromQQ, encoded_msg, encoded_flag, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;
@@ -281,7 +281,7 @@ CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime,
 	const char* user_info = CQ_getStrangerInfo(appAuthCode, fromQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "RequestAddGroup %I32d %I64d %I64d %s %s", fromGroup, fromQQ, encoded_msg, encoded_flag, subType, sendTime, user_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "RequestAddGroup %I64d %I64d %s %s %I32d %I32d %s", fromGroup, fromQQ, encoded_msg, encoded_flag, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;
@@ -300,7 +300,7 @@ CQEVENT(int32_t, _eventGroupUpload, 28)(int32_t subType, int32_t sendTime, int64
 	const char* user_info = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, fromQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupUpload %I32d %I64d %I64d %s", fromGroup, fromQQ, encoded_file, subType, sendTime, user_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupUpload %I64d %I64d %s %I32d %I32d %s", fromGroup, fromQQ, encoded_file, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_file;
