@@ -118,13 +118,9 @@ void prcsSetGroupAnonymousBan(const char *payload) {
 	char* anomymous = new char[FRAME_PAYLOAD_SIZE];
 	sscanf_s(payload, "%I64d %[^\n] %I64d", &group, anomymous, sizeof(char) * FRAME_PAYLOAD_SIZE, &duration);
 
-	char* decodedAnomymous = new char[FRAME_PAYLOAD_SIZE];
-	Base64decode(decodedAnomymous, anomymous);
-
-	CQ_setGroupAnonymousBan(appAuthCode, group, decodedAnomymous, duration);
+	CQ_setGroupAnonymousBan(appAuthCode, group, anomymous, duration);
 
 	delete[] anomymous;
-	delete[] decodedAnomymous;
 }
 
 void prcsSetGroupAnonymous(const char *payload) {
