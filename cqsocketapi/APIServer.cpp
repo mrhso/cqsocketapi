@@ -321,7 +321,7 @@ void prcsGetLoginNickname() {
 	Base64encode(encoded_nickname, nickname, strlen(nickname));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "LoginNickname %s", encoded_nickname);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "LoginNick %s", encoded_nickname);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_nickname;
