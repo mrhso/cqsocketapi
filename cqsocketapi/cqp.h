@@ -68,6 +68,7 @@ CQAPI(int32_t) CQ_deleteMsg(int32_t AuthCode, int64_t msgid);
 * QQID QQ号
 */
 CQAPI(int32_t) CQ_sendLike(int32_t AuthCode, int64_t QQID);
+CQAPI(int32_t) CQ_sendLikeV2(int32_t AuthCode, int64_t QQID, int32_t times);
 
 /*
 * 置群员移除
@@ -222,3 +223,5 @@ CQAPI(int32_t) CQ_setFatal(int32_t AuthCode, const char *errorinfo);
 * outformat 应用所需的语音文件格式，目前支持 mp3 amr wma m4a spx ogg wav flac
 */
 CQAPI(const char *) CQ_getRecord(int32_t AuthCode, const char *file, const char *outformat);
+
+CQAPI(const char *) CQ_getGroupMemberList(int32_t AuthCode, int64_t groupid);
