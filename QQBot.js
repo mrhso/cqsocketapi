@@ -370,7 +370,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'rich':
-                // [CQ:rich,url=XXX.jpg,texttext=...]
+                // [CQ:rich,url=XXX.jpg,text=...]
                 tmp = param.match(/url=(.*?)(,|$)/);
                 if (tmp && tmp[1]) {
                     return `[分享链接：${tmp[1]}]`;
@@ -496,7 +496,7 @@ class QQBot extends EventEmitter {
                 let command = frames[0];
 
                 // 除錯用
-                 this.emit('Raw', msg.toString());
+                // this.emit('Raw', msg.toString());
 
                 let msgdata;
 
@@ -724,7 +724,7 @@ class QQBot extends EventEmitter {
             const sayHello = () => {
                 if (this._started) {
                     let hello = `ClientHello ${this._clientPort}`;
-                    this._socket.send(hello, 0, hello.length, this._serverPort, this._serverHost)
+                    this._socket.send(hello, 0, hello.length, this._serverPort, this._serverHost);
 
                     // 原本此處是單獨放在啟動後一秒執行（無週期），但如此先啟動 Bot 再啟動酷 Q 就得不到這些信息
                     // 所以便與發送 ClientHello 一起執行，這樣只要和酷 Q 開始通信就一定能正常獲取
