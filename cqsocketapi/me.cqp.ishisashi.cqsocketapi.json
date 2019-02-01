@@ -72,6 +72,13 @@
             "priority":30000
         },
         {
+            "id":11,
+            "type":11,
+            "name":"群文件上传事件处理",
+            "function":"_eventGroupUpload",
+            "priority":30000
+        },
+        {
             "id":1001,
             "type":1001,
             "name":"酷Q启动事件",
