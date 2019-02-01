@@ -35,7 +35,11 @@ const base642str = (str, unicode = false) => {
 };
 
 const str2base64 = (str, unicode = false) => {
-    if (unicode) {
+    if (!str) {
+        // 酷 Q 部分使用 sscanf_s 拆分各數據，若遇到空數據則會不正常，故使用 0x00 對應的 AA== 傳輸過去
+        // 不過 JS 的 split 就沒有這種問題
+        return 'AA==';
+    } else if (unicode) {
         return Buffer.from(str).toString('base64');
     } else {
         let s = u2g.encode(str);
@@ -60,7 +64,7 @@ const replaceEmoji = (str) => str.replace(/\[CQ:emoji,id=(\d*)\]/g, (_, id) => S
  * @return {object}     包含具體使用者資訊的 Object
  */
 const parseStrangerInfo = (str) => {
-    if (str === 'None' || !str) {
+    if (str === '(null)' || !str) {
         return {};
     }
 
@@ -113,7 +117,7 @@ const parseStrangerInfo = (str) => {
  * @return {object}     包含具體使用者資訊的 Object
  */
 const parseGroupMemberInfo = (str) => {
-    if (str === 'None' || !str) {
+    if (str === '(null)' || !str) {
         return {};
     }
 
@@ -193,13 +197,13 @@ const parseGroupMemberInfo = (str) => {
         obj.hasBadRecord = Boolean(raw.readUInt32BE(offset));
         offset += 4;
 
-        // 群專屬名片
+        // 群專屬頭銜
         strlen = raw.readUInt16BE(offset);
         offset += 2;
         obj.honor = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
         offset += strlen;
 
-        // 專屬名片過期時間
+        // 專屬頭銜過期時間
         obj.honorExpirationTime = raw.readInt32BE(offset);
         offset += 4;
 
@@ -320,7 +324,7 @@ const iOSFaces = { /*iOS（含 HD）版定義*/
  * @param  {string} Message 已解碼並轉為 UTF-8 之後的訊息
  * @return {string} 去除 CQ 碼之後的文字
  */
-const parseMessage = (message, isPro) => {
+const parseMessage = (message) => {
     let images = [];
     let records = [];
     let at = {};
@@ -347,15 +351,9 @@ const parseMessage = (message, isPro) => {
                 break;
 
             case 'bface':
-                // CoolQ Air: [CQ:bface][中箭]
-                // CoolQ Pro: [CQ:bface,p=10278,id=42452682486D91909B7A513B8BFBC3C6]
-                if (isPro) {
-                    // TODO 取得表情內容
-                    return '[原创表情]';
-                } else {
-                    return '';
-                }
-                break;
+                // [CQ:bface,p=10278,id=42452682486D91909B7A513B8BFBC3C6]
+                // TODO 取得表情內容
+                return '[原创表情]';
 
             case 'sface':
                 return '[小表情]';
@@ -372,7 +370,7 @@ const parseMessage = (message, isPro) => {
                 break;
 
             case 'rich':
-                // [CQ:rich,url=XXX.jpg,text=...]
+                // [CQ:rich,url=XXX.jpg,texttext=...]
                 tmp = param.match(/url=(.*?)(,|$)/);
                 if (tmp && tmp[1]) {
                     return `[分享链接：${tmp[1]}]`;
@@ -454,6 +452,7 @@ class QQBot extends EventEmitter {
         this._isPro = options.CoolQPro;
         this._unicode = options.unicode;
         this._qq = NaN;
+        this._dir = '';
     }
 
     _log(message, isError) {
@@ -497,7 +496,7 @@ class QQBot extends EventEmitter {
                 let command = frames[0];
 
                 // 除錯用
-                // this.emit('Raw', msg.toString());
+                 this.emit('Raw', msg.toString());
 
                 let msgdata;
 
@@ -518,10 +517,11 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupMessage':
-                        msgdata = parseMessage(base642str(frames[3], this._unicode), this._isPro);
+                        msgdata = parseMessage(base642str(frames[3], this._unicode));
                         let userinfo = parseGroupMemberInfo(frames[6]);
+                        let text = msgdata.text;
 
-                        if (this._isPro && parseInt(frames[2]) === 80000000) {
+                        if (parseInt(frames[2]) === 80000000) {
                             // 匿名消息
 
                             let info = base642str(frames[7], this._unicode);
@@ -533,34 +533,38 @@ class QQBot extends EventEmitter {
                                 groupCard: nick,
                                 anonymous: frames[7],
                             };
+                            // Pro 得到的消息內容不含 Nick，但 Air 中含，要去掉
+                            if (!this._isPro) {
+                                text = text.replace(new RegExp(`^\\[${userinfo.groupCard}\\]:`, 'g'), '');
+                            }
                         }
 
                         this.emit('GroupMessage', {
                             group: parseInt(frames[1]),
                             from:  parseInt(frames[2]),
-                            text:  msgdata.text,
+                            text:  text,
                             extra: msgdata.extra,
                             type:  parseInt(frames[4]),
-                            time:  parseInt(frames[5]),
+                            id:    parseInt(frames[5]),
                             user:  userinfo,
                         });
                         break;
 
                     case 'PrivateMessage':
-                        msgdata = parseMessage(base642str(frames[2], this._unicode), this._isPro);
+                        msgdata = parseMessage(base642str(frames[2], this._unicode));
 
                         this.emit('PrivateMessage', {
                             from: parseInt(frames[1]),
                             text:  msgdata.text,
                             extra: msgdata.extra,
                             type: parseInt(frames[3]),
-                            time: parseInt(frames[4]),
+                            id:   parseInt(frames[4]),
                             user: parseStrangerInfo(frames[5]),
                         });
                         break;
 
                     case 'DiscussMessage':
-                        msgdata = parseMessage(base642str(frames[3], this._unicode), this._isPro);
+                        msgdata = parseMessage(base642str(frames[3], this._unicode));
 
                         this.emit('DiscussMessage', {
                             group: parseInt(frames[1]),
@@ -568,7 +572,7 @@ class QQBot extends EventEmitter {
                             text:  msgdata.text,
                             extra: msgdata.extra,
                             type:  parseInt(frames[4]),
-                            time:  parseInt(frames[5]),
+                            id:    parseInt(frames[5]),
                             user:  parseStrangerInfo(frames[6]),
                         });
                         break;
@@ -614,6 +618,49 @@ class QQBot extends EventEmitter {
                         this.emit('StrangerInfo', parseStrangerInfo(frames[1]));
                         break;
 
+                    case 'FriendAdded':
+                        this.emit('FriendAdded', {
+                            from: parseInt(frames[1]),
+                            type: parseInt(frames[2]),
+                            time: parseInt(frames[3]),
+                            user: parseStrangerInfo(frames[4]),
+                        });
+                        break;
+
+                    case 'RequestAddFriend':
+                        this.emit('RequestAddFriend', {
+                            from: parseInt(frames[1]),
+                            text: parseMessage(base642str(frames[2], this._unicode)),
+                            flag: base642str(frames[3], this._unicode),
+                            type: parseInt(frames[4]),
+                            time: parseInt(frames[5]),
+                            user: parseStrangerInfo(frames[6]),
+                        });
+                        break;
+
+                    case 'RequestAddGroup':
+                        this.emit('RequestAddGroup', {
+                            group: parseInt(frames[1]),
+                            from:  parseInt(frames[2]),
+                            text:  parseMessage(base642str(frames[3], this._unicode)),
+                            flag:  base642str(frames[4], this._unicode),
+                            type:  parseInt(frames[5]),
+                            time:  parseInt(frames[6]),
+                            user:  parseStrangerInfo(frames[7]),
+                        });
+                        break;
+
+                    case 'GroupUpload':
+                        this.emit('GroupUpload', {
+                            group: parseInt(frames[1]),
+                            from:  parseInt(frames[2]),
+                            file:  base642str(frames[3], this._unicode),
+                            type:  parseInt(frames[4]),
+                            time:  parseInt(frames[5]),
+                            user:  parseStrangerInfo(frames[6]),
+                        });
+                        break;
+
                     case 'GroupMemberList':
                         let path = base642str(frames[1], this._unicode);
                         let raw = Buffer.from(readFileSync(path).toString(), 'base64');
@@ -624,10 +671,11 @@ class QQBot extends EventEmitter {
                         // 成員信息
                         let info = [];
                         while (offset < raw.length) {
+                            // 前兩 Byte 是後面成員信息的長度
                             let o = raw.readUInt16BE(offset) + 2;
                             info.push(parseGroupMemberInfo(raw.slice(offset + 2, offset + o)));
                             offset += o;
-	                    }
+                        }
 
                         this.emit('GroupMemberList', {
                             number : number,
@@ -645,12 +693,13 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'LoginQQ':
-                        this._qq = frames[1];
+                        this._qq = parseInt(frames[1]);
                         this.emit('LoginQQ', this._qq);
                         break;
 
                     case 'AppDirectory':
-                        this.emit('AppDirectory', frames[1]);
+                        this._dir = base642str(frames[1], this._unicode);
+                        this.emit('AppDirectory', this._dir);
                         break;
 
                     default:
@@ -675,35 +724,45 @@ class QQBot extends EventEmitter {
             const sayHello = () => {
                 if (this._started) {
                     let hello = `ClientHello ${this._clientPort}`;
-                    this._socket.send(hello, 0, hello.length, this._serverPort, this._serverHost);
+                    this._socket.send(hello, 0, hello.length, this._serverPort, this._serverHost)
+
+                    // 原本此處是單獨放在啟動後一秒執行（無週期），但如此先啟動 Bot 再啟動酷 Q 就得不到這些信息
+                    // 所以便與發送 ClientHello 一起執行，這樣只要和酷 Q 開始通信就一定能正常獲取
+                    let get_nick = `LoginNick`;
+                    let get_qq = `LoginQQ`;
+                    let get_dir = `AppDirectory`;
+                    try {
+                        this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
+                    } catch (ex) {
+                        this.emit('Error', {
+                            event: 'connect',
+                            context: 'LoginNick',
+                            error: ex,
+                        });
+                    }
+                    try {
+                        this._socket.send(get_qq, 0, get_qq.length, this._serverPort, this._serverHost);
+                    } catch (ex) {
+                        this.emit('Error', {
+                            event: 'connect',
+                            context: 'LoginQQ',
+                            error: ex,
+                        });
+                    }
+                    try {
+                        this._socket.send(get_dir, 0, get_dir.length, this._serverPort, this._serverHost);
+                    } catch (ex) {
+                        this.emit('Error', {
+                            event: 'connect',
+                            context: 'AppDirectory',
+                            error: ex,
+                        });
+                    }
 
                     setTimeout(sayHello, 120000);
                 }
             };
             sayHello();
-
-            setTimeout(() => {
-                let get_nick = `LoginNick`;
-                let get_qq = `LoginQQ`;
-                try {
-                    this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
-                } catch (ex) {
-                    this.emit('Error', {
-                        event: 'connect',
-                        context: 'LoginNick',
-                        error: ex,
-                    });
-                }
-                try {
-                    this._socket.send(get_qq, 0, get_qq.length, this._serverPort, this._serverHost);
-                } catch (ex) {
-                    this.emit('Error', {
-                        event: 'connect',
-                        context: 'LoginQQ',
-                        error: ex,
-                    });
-                }
-            }, 1000);
 
         });
 
@@ -725,6 +784,8 @@ class QQBot extends EventEmitter {
         }
 
         this._nick = '';
+        this._qq = NaN;
+        this._dir = '';
     }
 
     _rawSend(msg) {
@@ -792,8 +853,18 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    loginNick(qq, times = 1) {
-        this._rawSend('LoginNick');
+    // ClientHello 會定時發送，一般不需要手動發送
+    // 因此該函數僅適用於 Debug，正常情況沒必要使用
+    sayHello() {
+        let cmd = `ClientHello ${this._clientPort}`;
+        this._rawSend(cmd);
+    }
+
+    // LoginNick 會隨發送 ClientHello 自動獲取
+    // 當然此函數可以確保獲得最新的 Nick
+    loginNick() {
+        let cmd = `LoginNick`;
+        this._rawSend(cmd);
     }
 
     sendLike(qq, times = 1) {
@@ -801,7 +872,7 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    // rejectAddRequest 設定為 true 則不再接收此人加群申請，慎用
+    // rejectAddRequest 為 true 則不再接收此人加群申請，慎用
     groupKick(group, qq, rejectAddRequest = false) {
         let cmd = `GroupKick ${group} ${qq} ${rejectAddRequest ? 1 : 0}`;
         this._rawSend(cmd);
@@ -817,7 +888,8 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    // anonymous 為 GroupMessage 收到的一串記錄匿名信息之 Base64（即 user.anonymous）
+    // anonymous 為 GroupMessage 收到的一串記錄匿名信息之 Base64
+    // 可在收到 GroupMessage 時的 user.anonymous 取得
     groupAnonymousBan(group, anonymous, duration = 1800) {
         let cmd = `GroupAnonymousBan ${group} ${anonymous} ${duration}`;
         this._rawSend(cmd);
@@ -839,7 +911,7 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    // duration 設定為 -1 的話則頭銜永久有效
+    // duration 為 -1 則頭銜永久有效
     groupSpecialTitle(group, qq, newSpecialTitle, duration = -1) {
         let cmd = `GroupSpecialTitle ${group} ${qq} ${newSpecialTitle} ${duration}`;
         this._rawSend(cmd);
@@ -850,12 +922,15 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    friendAddRequest(responseFlag, responseOperation, remark = '') {
+    // responseOperation 為 1 則通過，為 2 則拒絕
+    friendAddRequest(responseFlag, responseOperation = 1, remark = '') {
         let cmd = `FriendAddRequest ${str2base64(responseFlag, this._unicode)} ${responseOperation} ${str2base64(remark, this._unicode)}`;
         this._rawSend(cmd);
     }
 
-    groupAddRequest(responseFlag, requestType, responseOperation, reason = '') {
+    // requestType 為 1 則加群，為 2 則邀請
+    // responseOperation 為 1 則通過，為 2 則拒絕
+    groupAddRequest(responseFlag, requestType = 1, responseOperation = 1, reason = '') {
         let cmd = `GroupAddRequest ${str2base64(responseFlag, this._unicode)} ${requestType} ${responseOperation} ${str2base64(reason, this._unicode)}`;
         this._rawSend(cmd);
     }
@@ -875,11 +950,15 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
+    // LoginQQ 會隨發送 ClientHello 自動獲取
+    // 當然此函數可以確保獲得最新的 QQ 號
     loginQQ() {
         let cmd = `LoginQQ`;
         this._rawSend(cmd);
     }
 
+    // AppDirectory 會隨發送 ClientHello 自動獲取
+    // 當然此函數可以確保獲得最新的 CoolQ Socket API 插件目錄
     appDirectory() {
         let cmd = `AppDirectory`;
         this._rawSend(cmd);
@@ -887,6 +966,10 @@ class QQBot extends EventEmitter {
 
     get qq() {
         return this._qq;
+    }
+
+    get dir() {
+        return this._dir;
     }
 }
 
