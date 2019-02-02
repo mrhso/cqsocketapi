@@ -295,7 +295,7 @@ CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime,
 /*
 * Type=11 群事件-文件上传
 */
-CQEVENT(int32_t, _eventGroupUpload, 28)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *file) {
+CQEVENT(int32_t, __eventGroupUpload, 28)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *file) {
 
 	char* encoded_file = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_file, file, strlen(file));
