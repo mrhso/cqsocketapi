@@ -297,16 +297,12 @@ CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime,
 */
 CQEVENT(int32_t, __eventGroupUpload, 28)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *file) {
 
-	char* encoded_file = new char[FRAME_PAYLOAD_SIZE];
-	Base64encode(encoded_file, file, strlen(file));
-
 	const char* user_info = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, fromQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupUpload %I64d %I64d %s %I32d %I32d %s", fromGroup, fromQQ, encoded_file, subType, sendTime, user_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupUpload %I64d %I64d %s %I32d %I32d %s", fromGroup, fromQQ, file, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
-	delete[] encoded_file;
 	delete[] user_info;
 	delete[] buffer;
 

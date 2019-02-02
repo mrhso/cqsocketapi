@@ -218,6 +218,38 @@ const parseGroupMemberInfo = (str) => {
     }
 };
 
+// TODO
+/**
+ * 將 Base64 格式的檔案資訊轉為 Object
+ * @param  {string} str 從 Server 接收的 Base64 碼
+ * @return {object}     包含具體檔案資訊的 Object
+ */
+/*const parseFileInfo = (str) => {
+    if (str === '(null)' || !str) {
+        return {};
+    }
+
+    if (fminfoCache.has(str)) {
+        return fminfoCache.get(str);
+    }
+
+    let obj = {};
+    let r = obj;
+
+    try {
+        let hi, lo;
+        let strlen;
+        let offset;
+
+        let raw = Buffer.from(str, 'base64');
+
+        r = Object.freeze(obj);
+        fminfoCache.set(str, r);
+    } finally {
+        return r;
+    }
+};*/
+
 const faces = {
     0:"惊讶",1:"撇嘴",2:"色",3:"发呆",4:"得意",5:"流泪",6:"害羞",7:"闭嘴",8:"睡",9:"大哭",
     10:"尴尬",11:"发怒",12:"调皮",13:"呲牙",14:"微笑",15:"难过",16:"酷",17:"非典",18:"抓狂",19:"吐",
@@ -654,10 +686,10 @@ class QQBot extends EventEmitter {
                         this.emit('GroupUpload', {
                             group: parseInt(frames[1]),
                             from:  parseInt(frames[2]),
-                            file:  base642str(frames[3], this._unicode),
+                            file:  frames[3],
                             type:  parseInt(frames[4]),
                             time:  parseInt(frames[5]),
-                            user:  parseStrangerInfo(frames[6]),
+                            user:  parseGroupMemberInfo(frames[6]),
                         });
                         break;
 
