@@ -567,7 +567,7 @@ class QQBot extends EventEmitter {
                             };
                             // Pro 得到的消息內容不含 Nick，但 Air 中含，要去掉
                             if (!this._isPro) {
-                                text = text.replace(new RegExp(`^\\[${userinfo.groupCard}\\]:`, 'g'), '');
+                                text = text.substring(`[${userinfo.groupCard}]:`.length);
                             }
                         }
 
