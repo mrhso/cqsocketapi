@@ -22,8 +22,8 @@ char CLIENT_ADDRESS[16] = "127.0.0.1";
 int CLIENT_SIZE = 32;
 int CLIENT_TIMEOUT = 300;
 int FRAME_PREFIX_SIZE = 256;
-int FRAME_PAYLOAD_SIZE = 32768;
-int FRAME_SIZE = 33025;
+int FRAME_PAYLOAD_SIZE = 524288;
+int FRAME_SIZE = 524545;
 
 unsigned __stdcall startServer(void *args) {
 	server = new APIServer();
