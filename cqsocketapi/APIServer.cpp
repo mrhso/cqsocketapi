@@ -239,24 +239,13 @@ void prcsGetGroupMemberInfo(const char *payload) {
 void prcsGetGroupMemberList(const char *payload) {
 	int64_t group;
 	sscanf_s(payload, "%I64d", &group);
-	char* encoded_path = new char[FRAME_PAYLOAD_SIZE];
-	std::string appPath(CQ_getAppDirectory(appAuthCode));
-	std::string cachePath = appPath + "GroupListCache\\";
 
-	std::string filename = std::string(cachePath) + std::to_string(group) + ".g";
-	CreateDirectory(cachePath.c_str(), nullptr);
-	std::ofstream fout(filename.c_str(), std::ofstream::out);
 	auto list = CQ_getGroupMemberList(appAuthCode, group);
-	if (fout.is_open()) {
-		fout << std::string(list);
-		fout.close();
-	}
-	Base64encode(encoded_path, filename.c_str(), strlen(filename.c_str()));
+
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s", encoded_path);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s", list);
 	client->send(buffer, strlen(buffer));
 
-	delete[] encoded_path;
 	delete[] buffer;
 }
 

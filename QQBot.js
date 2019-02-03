@@ -1,7 +1,7 @@
 /*
  * 酷 Q 機器人介面
  *
- * 與 cqsocketapi（https://github.com/mrhso/cqsocketapi/tree/nodejs）配合使用
+ * 與 cqsocketapi（https://github.com/mrhso/cqsocketapi）配合使用
  */
 
 /*
@@ -21,6 +21,7 @@ const MAX_LEN = 0; // 發送時消息 Base64 的最大長度，0 為不限制
 
 let gminfoCache = new Map();
 let pminfoCache = new Map();
+let fminfoCache = new Map();
 
 const g2u = new TextDecoder('gb18030');
 const u2g = new TextEncoder('gb18030', { NONSTANDARD_allowLegacyEncoding: true });
@@ -28,9 +29,10 @@ const u2g = new TextEncoder('gb18030', { NONSTANDARD_allowLegacyEncoding: true }
 const base642str = (str, unicode = false) => {
     let buf = Buffer.from(str, 'base64');
     if (unicode) {
-        return buf.toString();
+        // 接收時轉為 LF
+        return buf.toString().replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
     } else {
-        return g2u.decode(buf);
+        return g2u.decode(buf).replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
     }
 };
 
@@ -40,9 +42,10 @@ const str2base64 = (str, unicode = false) => {
         // 不過 JS 的 split 就沒有這種問題
         return 'AA==';
     } else if (unicode) {
-        return Buffer.from(str).toString('base64');
+        // 傳給酷 Q 時轉為 CR LF
+        return Buffer.from(str.replace(/\r\n/gu, '\n').replace(/\r/gu, '\n').replace(/\n/gu, '\r\n')).toString('base64');
     } else {
-        let s = u2g.encode(str);
+        let s = u2g.encode(str.replace(/\r\n/gu, '\n').replace(/\r/gu, '\n').replace(/\n/gu, '\r\n'));
         return Buffer.from(s).toString('base64');
     }
 };
@@ -50,13 +53,11 @@ const str2base64 = (str, unicode = false) => {
 const buf2str = (buffer, left, right, unicode = false) => {
     let temp = buffer.slice(left, right);
     if (unicode) {
-        return temp.toString();
+        return temp.toString().replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
     } else {
-        return g2u.decode(temp);
+        return g2u.decode(temp).replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
     }
 };
-
-const replaceEmoji = (str) => str.replace(/\[CQ:emoji,id=(\d*)\]/g, (_, id) => String.fromCodePoint(id));
 
 /**
  * 將 Base64 格式的使用者資訊轉為 Object
@@ -92,7 +93,7 @@ const parseStrangerInfo = (str) => {
         // 昵稱
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 性別
@@ -150,13 +151,13 @@ const parseGroupMemberInfo = (str) => {
         // 昵稱
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 群名片
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.groupCard = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
+        obj.groupCard = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 性別
@@ -200,7 +201,7 @@ const parseGroupMemberInfo = (str) => {
         // 群專屬頭銜
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.honor = replaceEmoji(buf2str(raw, offset, offset + strlen, this._unicode));
+        obj.honor = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 專屬頭銜過期時間
@@ -218,13 +219,12 @@ const parseGroupMemberInfo = (str) => {
     }
 };
 
-// TODO
 /**
  * 將 Base64 格式的檔案資訊轉為 Object
  * @param  {string} str 從 Server 接收的 Base64 碼
  * @return {object}     包含具體檔案資訊的 Object
  */
-/*const parseFileInfo = (str) => {
+const parseFileInfo = (str) => {
     if (str === '(null)' || !str) {
         return {};
     }
@@ -243,12 +243,36 @@ const parseGroupMemberInfo = (str) => {
 
         let raw = Buffer.from(str, 'base64');
 
+        // ID
+        strlen = raw.readUInt16BE(0);
+        offset = 2;
+        obj.id = buf2str(raw, offset, offset + strlen, this._unicode);
+        offset += strlen;
+
+        // 檔案名
+        strlen = raw.readUInt16BE(offset);
+        offset += 2;
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
+        offset += strlen;
+
+        // 大小
+        hi = raw.readUInt32BE(0);
+        lo = raw.readUInt32BE(4);
+        obj.size = hi*4294967296 + lo;
+        offset += 8;
+
+        // BusID
+        hi = raw.readUInt32BE(0);
+        lo = raw.readUInt32BE(4);
+        obj.busid = hi*4294967296 + lo;
+        offset += 8;
+
         r = Object.freeze(obj);
         fminfoCache.set(str, r);
     } finally {
         return r;
     }
-};*/
+};
 
 const faces = {
     0:"惊讶",1:"撇嘴",2:"色",3:"发呆",4:"得意",5:"流泪",6:"害羞",7:"闭嘴",8:"睡",9:"大哭",
@@ -274,82 +298,6 @@ const faces = {
     201:"点赞",202:"无聊",203:"托脸",204:"吃",205:"送花",206:"害怕",207:"花痴",208:"小样儿",209:"脸红",210:"飙泪",
     211:"我不看",212:"托腮",213:"哇哦"
 };
-
-const PCFaces = { /*PC 版定義*/
-    0:"惊讶",1:"撇嘴",2:"色",3:"发呆",4:"得意",5:"流泪",6:"害羞",7:"闭嘴",8:"睡",9:"大哭",
-    10:"尴尬",11:"发怒",12:"调皮",13:"呲牙",14:"微笑",15:"难过",16:"酷",17:"表情"/*未定義*/,18:"抓狂",19:"吐",
-    20:"偷笑",21:"可爱",22:"白眼",23:"傲慢",24:"饥饿",25:"困",26:"惊恐",27:"流汗",28:"憨笑",29:"大兵",
-    30:"奋斗",31:"咒骂",32:"疑问",33:"嘘...",34:"晕",35:"折磨",36:"衰",37:"骷髅",38:"敲打",39:"再见",
-    40:"表情"/*未定義*/,41:"发抖",42:"爱情",43:"跳跳",44:"表情"/*未定義*/,45:"表情"/*未定義*/,46:"猪头",47:"表情"/*未定義*/,48:"表情"/*未定義*/,49:"拥抱",
-    50:"表情"/*未定義*/,51:"表情"/*未定義*/,52:"表情"/*未定義*/,53:"蛋糕",54:"闪电",55:"炸弹",56:"刀",57:"足球",58:"表情"/*未定義*/,59:"便便",
-    60:"咖啡",61:"饭",62:"表情"/*未定義*/,63:"玫瑰",64:"凋谢",65:"表情"/*未定義*/,66:"爱心",67:"心碎",68:"表情"/*未定義*/,69:"礼物",
-    70:"表情"/*未定義*/,71:"表情"/*未定義*/,72:"表情"/*未定義*/,73:"表情"/*未定義*/,74:"太阳",75:"月亮",76:"强",77:"弱",78:"握手",79:"胜利",
-    80:"表情"/*未定義*/,81:"表情"/*未定義*/,82:"表情"/*未定義*/,83:"表情"/*未定義*/,84:"表情"/*未定義*/,85:"飞吻",86:"怄火",87:"表情"/*未定義*/,88:"表情"/*未定義*/,89:"西瓜",
-    90:"表情"/*未定義*/,91:"表情"/*未定義*/,92:"表情"/*未定義*/,93:"表情"/*未定義*/,94:"表情"/*未定義*/,95:"表情"/*未定義*/,96:"冷汗",97:"擦汗",98:"抠鼻",99:"鼓掌",
-    100:"糗大了",101:"坏笑",102:"左哼哼",103:"右哼哼",104:"哈欠",105:"鄙视",106:"委屈",107:"快哭了",108:"阴险",109:"亲亲",
-    110:"吓",111:"可怜",112:"菜刀",113:"啤酒",114:"篮球",115:"乒乓",116:"示爱",117:"瓢虫",118:"抱拳",119:"勾引",
-    120:"拳头",121:"差劲",122:"爱你",123:"NO",124:"OK",125:"转圈",126:"磕头",127:"回头",128:"跳绳",129:"挥手",
-    130:"激动",131:"街舞",132:"献吻",133:"左太极",134:"右太极",135:"表情"/*未定義*/,136:"双喜",137:"鞭炮",138:"灯笼",139:"发财",
-    140:"K歌",141:"购物",142:"邮件",143:"帅",144:"喝彩",145:"祈祷",146:"爆筋",147:"棒棒糖",148:"喝奶",149:"下面",
-    150:"香蕉",151:"飞机",152:"开车",153:"高铁左车头",154:"车厢",155:"高铁右车头",156:"多云",157:"下雨",158:"钞票",159:"熊猫",
-    160:"灯泡",161:"风车",162:"闹钟",163:"打伞",164:"彩球",165:"钻戒",166:"沙发",167:"纸巾",168:"药",169:"手枪",170:"青蛙",
-    171:"茶",172:"眨眼睛",173:"泪奔",174:"无奈",175:"卖萌",176:"小纠结",177:"喷血",178:"斜眼笑",179:"doge",180:"惊喜",
-    181:"骚扰",182:"笑哭",183:"我最美",184:"河蟹",185:"羊驼",186:"表情"/*未定義*/,187:"幽灵",188:"蛋",189:"表情"/*未定義*/,190:"菊花",
-    191:"表情"/*未定義*/,192:"红包",193:"大笑",194:"不开心",195:"表情"/*未定義*/,196:"表情"/*未定義*/,197:"冷漠",198:"呃",199:"好棒",200:"拜托",
-    201:"点赞",202:"无聊",203:"托脸",204:"吃",205:"送花",206:"害怕",207:"花痴",208:"小样儿",209:"表情"/*未定義*/,210:"飙泪",
-    211:"我不看",212:"托腮",213:"表情"/*未定義*/
-};
-
-const AndroidFaces = { /*Android 版定義*/
-    0:"惊讶",1:"撇嘴",2:"色",3:"发呆",4:"得意",5:"流泪",6:"害羞",7:"闭嘴",8:"睡",9:"大哭",
-    10:"尴尬",11:"发怒",12:"调皮",13:"呲牙",14:"微笑",15:"难过",16:"酷",17:""/*未定義*/,18:"抓狂",19:"吐",
-    20:"偷笑",21:"可爱",22:"白眼",23:"傲慢",24:"饥饿",25:"困",26:"惊恐",27:"流汗",28:"憨笑",29:"悠闲",
-    30:"奋斗",31:"咒骂",32:"疑问",33:"嘘...",34:"晕",35:"折磨",36:"衰",37:"骷髅",38:"敲打",39:"再见",
-    40:""/*未定義*/,41:"发抖",42:"爱情",43:"跳跳",44:""/*未定義*/,45:""/*未定義*/,46:"猪头",47:""/*未定義*/,48:""/*未定義*/,49:"拥抱",
-    50:"钱",51:""/*未定義*/,52:""/*未定義*/,53:"蛋糕",54:"闪电",55:"炸弹",56:"刀",57:"足球",58:""/*未定義*/,59:"便便",
-    60:"咖啡",61:"饭",62:""/*未定義*/,63:"玫瑰",64:"凋谢",65:""/*未定義*/,66:"爱心",67:"心碎",68:""/*未定義*/,69:"礼物",
-    70:""/*未定義*/,71:""/*未定義*/,72:""/*未定義*/,73:""/*未定義*/,74:"太阳",75:"月亮",76:"赞",77:"踩",78:"握手",79:"胜利",
-    80:""/*未定義*/,81:"美女",82:""/*未定義*/,83:""/*未定義*/,84:""/*未定義*/,85:"飞吻",86:"怄火",87:""/*未定義*/,88:""/*未定義*/,89:"西瓜",
-    90:""/*未定義*/,91:""/*未定義*/,92:""/*未定義*/,93:""/*未定義*/,94:""/*未定義*/,95:""/*未定義*/,96:"冷汗",97:"擦汗",98:"抠鼻",99:"鼓掌",
-    100:"糗大了",101:"坏笑",102:"左哼哼",103:"右哼哼",104:"哈欠",105:"鄙视",106:"委屈",107:"快哭了",108:"阴险",109:"亲亲",
-    110:"吓",111:"可怜",112:"菜刀",113:"啤酒",114:"篮球",115:"乒乓",116:"示爱",117:"瓢虫",118:"抱拳",119:"勾引",
-    120:"拳头",121:"差劲",122:"爱你",123:"NO",124:"OK",125:"转圈",126:"磕头",127:"回头",128:"跳绳",129:"挥手",
-    130:"激动",131:"街舞",132:"献吻",133:"左太极",134:"右太极",135:"招财进宝",136:"双喜",137:"鞭炮",138:"灯笼",139:"发财",
-    140:"K歌",141:"购物",142:"邮件",143:"帅",144:"喝彩",145:"祈祷",146:"爆筋",147:"棒棒糖",148:"喝奶",149:"下面",
-    150:"香蕉",151:"飞机",152:"开车",153:"高铁左车头",154:"车厢",155:"高铁右车头",156:"多云",157:"下雨",158:"钞票",159:"熊猫",
-    160:"灯泡",161:"风车",162:"闹钟",163:"打伞",164:"彩球",165:"钻戒",166:"沙发",167:"纸巾",168:"药",169:"手枪",170:"青蛙",
-    171:"茶",172:"眨眼睛",173:"泪奔",174:"无奈",175:"卖萌",176:"小纠结",177:"喷血",178:"斜眼笑",179:"doge",180:"惊喜",
-    181:"骚扰",182:"笑哭",183:"我最美",184:"河蟹",185:"羊驼",186:"栗子",187:"幽灵",188:"蛋",189:"马赛克",190:"菊花",
-    191:"肥皂",192:"红包",193:"大笑",194:"不开心",195:"啊",196:"惶恐",197:"冷漠",198:"呃",199:"好棒",200:"拜托",
-    201:"点赞",202:"无聊",203:"托脸",204:"吃",205:"送花",206:"害怕",207:"花痴",208:"小样儿",209:"脸红",210:"飙泪",
-    211:"我不看",212:"托腮",213:"哇哦"
-};
-
-const iOSFaces = { /*iOS（含 HD）版定義*/
-    0:"惊讶",1:"撇嘴",2:"色",3:"发呆",4:"得意",5:"流泪",6:"害羞",7:"闭嘴",8:"睡",9:"大哭",
-    10:"尴尬",11:"发怒",12:"调皮",13:"呲牙",14:"微笑",15:"难过",16:"酷",17:""/*未定義*/,18:"抓狂",19:"吐",
-    20:"偷笑",21:"可爱",22:"白眼",23:"傲慢",24:"饥饿",25:"困",26:"惊恐",27:"流汗",28:"憨笑",29:"悠闲",
-    30:"奋斗",31:"咒骂",32:"疑问",33:"嘘",34:"晕",35:"折磨",36:"衰",37:"骷髅",38:"敲打",39:"再见",
-    40:""/*未定義*/,41:"发抖",42:"爱情",43:"跳跳",44:""/*未定義*/,45:""/*未定義*/,46:"猪头",47:""/*未定義*/,48:""/*未定義*/,49:"拥抱",
-    50:""/*未定義*/,51:""/*未定義*/,52:""/*未定義*/,53:"蛋糕",54:"闪电",55:"炸弹",56:"刀",57:"足球",58:""/*未定義*/,59:"便便",
-    60:"咖啡",61:"饭",62:""/*未定義*/,63:"玫瑰",64:"凋谢",65:""/*未定義*/,66:"爱心",67:"心碎",68:""/*未定義*/,69:"礼物",
-    70:""/*未定義*/,71:""/*未定義*/,72:""/*未定義*/,73:""/*未定義*/,74:"太阳",75:"月亮",76:"强",77:"弱",78:"握手",79:"胜利",
-    80:""/*未定義*/,81:""/*未定義*/,82:""/*未定義*/,83:""/*未定義*/,84:""/*未定義*/,85:"飞吻",86:"怄火",87:""/*未定義*/,88:""/*未定義*/,89:"西瓜",
-    90:""/*未定義*/,91:""/*未定義*/,92:""/*未定義*/,93:""/*未定義*/,94:""/*未定義*/,95:""/*未定義*/,96:"冷汗",97:"擦汗",98:"抠鼻",99:"鼓掌",
-    100:"糗大了",101:"坏笑",102:"左哼哼",103:"右哼哼",104:"哈欠",105:"鄙视",106:"委屈",107:"快哭了",108:"阴险",109:"亲亲",
-    110:"吓",111:"可怜",112:"菜刀",113:"啤酒",114:"篮球",115:"乒乓",116:"示爱",117:"瓢虫",118:"抱拳",119:"勾引",
-    120:"拳头",121:"差劲",122:"爱你",123:"NO",124:"OK",125:"转圈",126:"磕头",127:"回头",128:"跳绳",129:"挥手",
-    130:"激动",131:"街舞",132:"献吻",133:"左太极",134:"右太极",135:""/*未定義*/,136:"双喜",137:"鞭炮",138:"灯笼",139:"发财",
-    140:"K歌",141:"购物",142:"邮件",143:"帅",144:"喝彩",145:"祈祷",146:"爆筋",147:"棒棒糖",148:"喝奶",149:"下面",
-    150:"香蕉",151:"飞机",152:"开车",153:"高铁左车头",154:"车厢",155:"高铁右车头",156:"多云",157:"下雨",158:"钞票",159:"熊猫",
-    160:"灯泡",161:"风车",162:"闹钟",163:"打伞",164:"彩球",165:"钻戒",166:"沙发",167:"纸巾",168:"药",169:"手枪",170:"青蛙",
-    171:"茶",172:"舔",173:"泪奔",174:"无奈",175:"卖萌",176:"小纠结",177:"喷血",178:"斜眼笑",179:"doge",180:"惊喜",
-    181:"骚扰",182:"笑哭",183:"我最美",184:"河蟹",185:"羊驼",186:"栗子",187:"幽灵",188:"蛋",189:""/*未定義*/,190:"菊花",
-    191:""/*未定義*/,192:"红包",193:"大笑",194:"不开心",195:""/*未定義*/,196:""/*未定義*/,197:"冷漠",198:"呃",199:"好棒",200:"拜托",
-    201:"点赞",202:"无聊",203:"托脸",204:"吃",205:"送花",206:"害怕",207:"花痴",208:"小样儿",209:""/*未定義*/,210:"飙泪",
-    211:"我不看",212:"托腮",213:"哇哦"
-};
-
 
 /**
  * 去除接收訊息中的 CQ 碼（酷 Q 專用碼，包括表情、繪文字、相片等資料），將其換為「[表情名稱]」、「[图片]」等文字。
@@ -456,8 +404,7 @@ const parseMessage = (message) => {
         ats.push(k);
     }
 
-    text = text.replace(/\[CQ:bface\]/g, '')
-                .replace(/&#91;/gu, '[')
+    text = text.replace(/&#91;/gu, '[')
                 .replace(/&#93;/gu, ']')
                 .replace(/&amp;/gu, '&');
 
@@ -484,7 +431,6 @@ class QQBot extends EventEmitter {
         this._isPro = options.CoolQPro;
         this._unicode = options.unicode;
         this._qq = NaN;
-        this._dir = '';
     }
 
     _log(message, isError) {
@@ -686,7 +632,7 @@ class QQBot extends EventEmitter {
                         this.emit('GroupUpload', {
                             group: parseInt(frames[1]),
                             from:  parseInt(frames[2]),
-                            file:  frames[3],
+                            file:  parseFileInfo(frames[3]),
                             type:  parseInt(frames[4]),
                             time:  parseInt(frames[5]),
                             user:  parseGroupMemberInfo(frames[6]),
@@ -694,9 +640,9 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupMemberList':
-                        let path = base642str(frames[1], this._unicode);
-                        let raw = Buffer.from(readFileSync(path).toString(), 'base64');
+                        let raw = Buffer.from(frames[1], 'base64');
                         let offset;
+                        let strlen;
                         // 人數
                         let number = raw.readUInt32BE(0);
                         offset = 4;
@@ -704,9 +650,10 @@ class QQBot extends EventEmitter {
                         let info = [];
                         while (offset < raw.length) {
                             // 前兩 Byte 是後面成員信息的長度
-                            let o = raw.readUInt16BE(offset) + 2;
-                            info.push(parseGroupMemberInfo(raw.slice(offset + 2, offset + o)));
-                            offset += o;
+                            strlen = raw.readUInt16BE(offset);
+                            offset += 2;
+                            info.push(parseGroupMemberInfo(raw.slice(offset, offset + strlen)));
+                            offset += strlen;
                         }
 
                         this.emit('GroupMemberList', {
@@ -730,8 +677,8 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
-                        this._dir = base642str(frames[1], this._unicode);
-                        this.emit('AppDirectory', this._dir);
+                        // Wine 環境似乎沒什麼意義
+                        this.emit('AppDirectory', base642str(frames[1], this._unicode));
                         break;
 
                     default:
@@ -762,7 +709,6 @@ class QQBot extends EventEmitter {
                     // 所以便與發送 ClientHello 一起執行，這樣只要和酷 Q 開始通信就一定能正常獲取
                     let get_nick = `LoginNick`;
                     let get_qq = `LoginQQ`;
-                    let get_dir = `AppDirectory`;
                     try {
                         this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
                     } catch (ex) {
@@ -778,15 +724,6 @@ class QQBot extends EventEmitter {
                         this.emit('Error', {
                             event: 'connect',
                             context: 'LoginQQ',
-                            error: ex,
-                        });
-                    }
-                    try {
-                        this._socket.send(get_dir, 0, get_dir.length, this._serverPort, this._serverHost);
-                    } catch (ex) {
-                        this.emit('Error', {
-                            event: 'connect',
-                            context: 'AppDirectory',
                             error: ex,
                         });
                     }
@@ -989,8 +926,6 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    // AppDirectory 會隨發送 ClientHello 自動獲取
-    // 當然此函數可以確保獲得最新的 CoolQ Socket API 插件目錄
     appDirectory() {
         let cmd = `AppDirectory`;
         this._rawSend(cmd);
@@ -998,10 +933,6 @@ class QQBot extends EventEmitter {
 
     get qq() {
         return this._qq;
-    }
-
-    get dir() {
-        return this._dir;
     }
 }
 
