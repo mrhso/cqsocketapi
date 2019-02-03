@@ -15,9 +15,10 @@ const dgram = require('dgram');
 const { TextEncoder, TextDecoder } = require('text-encoding');
 const Buffer = require('buffer').Buffer;
 const EventEmitter = require('events').EventEmitter;
+const path = require('path');
 const readFileSync = require("fs").readFileSync;
 
-const MAX_LEN = 0; // 發送時消息 Base64 的最大長度，0 為不限制
+const MAX_LEN = 33025; // 發送時的最大長度
 
 let gminfoCache = new Map();
 let pminfoCache = new Map();
@@ -431,6 +432,11 @@ class QQBot extends EventEmitter {
         this._isPro = options.CoolQPro;
         this._unicode = options.unicode;
         this._qq = NaN;
+        // 表示酷 Q 所在 Windows 環境（或 Wine）中的 CoolQ Socket API 插件目錄
+        this._winAppDir = '';
+        this._setAppDir = options.appDir || '';
+        // 表示實際環境的 CoolQ Socket API 插件目錄，需要自己設定
+        this._appDir = this._setAppDir;
     }
 
     _log(message, isError) {
@@ -640,7 +646,8 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupMemberList':
-                        let raw = Buffer.from(frames[1], 'base64');
+                        let file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._winAppDir.length).replace(/\\/gu, '/'));
+                        let raw = Buffer.from(readFileSync(file).toString(), 'base64');
                         let offset;
                         let strlen;
                         // 人數
@@ -657,8 +664,8 @@ class QQBot extends EventEmitter {
                         }
 
                         this.emit('GroupMemberList', {
-                            number : number,
-                            info   : info,
+                            number: number,
+                            info  : info,
                         });
                         break;
 
@@ -677,8 +684,11 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
-                        // Wine 環境似乎沒什麼意義
-                        this.emit('AppDirectory', base642str(frames[1], this._unicode));
+                        this._winAppDir = base642str(frames[1], this._unicode);
+                        if (!this._setAppDir) {
+                            this._appDir = this._winAppDir;
+                        };
+                        this.emit('AppDirectory', this._winAppDir);
                         break;
 
                     default:
@@ -709,6 +719,7 @@ class QQBot extends EventEmitter {
                     // 所以便與發送 ClientHello 一起執行，這樣只要和酷 Q 開始通信就一定能正常獲取
                     let get_nick = `LoginNick`;
                     let get_qq = `LoginQQ`;
+                    let get_dir = `AppDirectory`;
                     try {
                         this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
                     } catch (ex) {
@@ -724,6 +735,15 @@ class QQBot extends EventEmitter {
                         this.emit('Error', {
                             event: 'connect',
                             context: 'LoginQQ',
+                            error: ex,
+                        });
+                    }
+                    try {
+                        this._socket.send(get_dir, 0, get_dir.length, this._serverPort, this._serverHost);
+                    } catch (ex) {
+                        this.emit('Error', {
+                            event: 'connect',
+                            context: 'AppDirectory',
                             error: ex,
                         });
                     }
@@ -754,12 +774,14 @@ class QQBot extends EventEmitter {
 
         this._nick = '';
         this._qq = NaN;
-        this._dir = '';
+        this._winAppDir = '';
+        this._setAppDir = options.appDir || '';
+        this._appDir = this._setAppDir;
     }
 
     _rawSend(msg) {
         try {
-            this._socket.send(msg, 0, msg.length < MAX_LEN || MAX_LEN == 0 ? msg.length : MAX_LEN, this._serverPort, this._serverHost);
+            this._socket.send(msg, 0, msg.length < MAX_LEN ? msg.length : MAX_LEN, this._serverPort, this._serverHost);
         } catch (ex) {
             this.emit('Error', {
                 event: 'send',
@@ -933,6 +955,10 @@ class QQBot extends EventEmitter {
 
     get qq() {
         return this._qq;
+    }
+
+    get appDir() {
+        return this._appDir;
     }
 }
 
