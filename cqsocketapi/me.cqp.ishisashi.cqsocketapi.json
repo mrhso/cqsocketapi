@@ -30,6 +30,13 @@
             "priority":30000
         },
         {
+            "id":4,
+            "type":11,
+            "name":"群文件上传事件处理",
+            "function":"_eventGroupUpload",
+            "priority":30000
+        },
+        {
             "id":5,
             "type":101,
             "name":"群管理变动事件处理",
@@ -69,13 +76,6 @@
             "type":302,
             "name":"群添加请求处理",
             "function":"_eventRequest_AddGroup",
-            "priority":30000
-        },
-        {
-            "id":11,
-            "type":11,
-            "name":"群文件上传事件处理",
-            "function":"_eventGroupUpload",
             "priority":30000
         },
         {
@@ -130,6 +130,7 @@
         140,
         150,
         151,
-        160
+        160,
+        180
     ]
 }

@@ -257,14 +257,14 @@ const parseFileInfo = (str) => {
         offset += strlen;
 
         // 大小
-        hi = raw.readUInt32BE(0);
-        lo = raw.readUInt32BE(4);
+        hi = raw.readUInt32BE(offset);
+        lo = raw.readUInt32BE(offset + 4);
         obj.size = hi*4294967296 + lo;
         offset += 8;
 
         // BusID
-        hi = raw.readUInt32BE(0);
-        lo = raw.readUInt32BE(4);
+        hi = raw.readUInt32BE(offset);
+        lo = raw.readUInt32BE(offset + 4);
         obj.busid = hi*4294967296 + lo;
         offset += 8;
 
@@ -432,10 +432,11 @@ class QQBot extends EventEmitter {
         this._isPro = options.CoolQPro;
         this._unicode = options.unicode;
         this._qq = NaN;
-        // 表示酷 Q 所在 Windows 環境（或 Wine）中的 CoolQ Socket API 插件目錄
-        this._winAppDir = '';
+        // 表示酷 Q 所在環境中的 CoolQ Socket API 插件目錄
+        this._cqAppDir = '';
         this._setAppDir = options.appDir || '';
         // 表示實際環境的 CoolQ Socket API 插件目錄，需要自己設定
+        // Windows 用家沒填也無事，但酷 Q on Docker 用家務必準確設定！
         this._appDir = this._setAppDir;
     }
 
@@ -646,7 +647,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupMemberList':
-                        let file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._winAppDir.length).replace(/\\/gu, '/'));
+                        let file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
                         let raw = Buffer.from(readFileSync(file).toString(), 'base64');
                         let offset;
                         let strlen;
@@ -684,11 +685,11 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
-                        this._winAppDir = base642str(frames[1], this._unicode);
+                        this._cqAppDir = base642str(frames[1], this._unicode);
                         if (!this._setAppDir) {
-                            this._appDir = this._winAppDir;
+                            this._appDir = this._cqAppDir;
                         };
-                        this.emit('AppDirectory', this._winAppDir);
+                        this.emit('AppDirectory', this._cqAppDir);
                         break;
 
                     default:
@@ -774,7 +775,7 @@ class QQBot extends EventEmitter {
 
         this._nick = '';
         this._qq = NaN;
-        this._winAppDir = '';
+        this._cqAppDir = '';
         this._setAppDir = options.appDir || '';
         this._appDir = this._setAppDir;
     }
@@ -959,6 +960,11 @@ class QQBot extends EventEmitter {
 
     get appDir() {
         return this._appDir;
+    }
+
+    deleteMessage(msgID) {
+        let cmd = `DeleteMessage ${msgID}`;
+        this._rawSend(cmd);
     }
 }
 

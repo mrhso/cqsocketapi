@@ -338,6 +338,14 @@ void prcsGetAppDirectory() {
 	delete[] buffer;
 }
 
+void prcsDeleteMessage(const char *payload) {
+
+	int64_t msgID;
+	sscanf_s(payload, "%I64d", &msgID);
+
+	CQ_deleteMsg(appAuthCode, msgID);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //	Not Implemented
 //////////////////////////////////////////////////////////////////////////
@@ -502,6 +510,11 @@ void APIServer::run() {
 
 			if (strcmp(prefix, "AppDirectory") == 0) {
 				prcsGetAppDirectory();
+				continue;
+			}
+
+			if (strcmp(prefix, "DeleteMessage") == 0) {
+				prcsDeleteMessage();
 				continue;
 			}
 
