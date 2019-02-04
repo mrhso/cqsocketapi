@@ -692,6 +692,27 @@ class QQBot extends EventEmitter {
                         this.emit('AppDirectory', this._cqAppDir);
                         break;
 
+                    case 'PrivateMessageID':
+                        this.emit('PrivateMessageID', {
+                            id:      parseInt(frames[1]),
+                            number:  parseInt(frames[2]),
+                        });
+                        break;
+
+                    case 'GroupMessageID':
+                        this.emit('GroupMessageID', {
+                            id:      parseInt(frames[1]),
+                            number:  parseInt(frames[2]),
+                        });
+                        break;
+
+                    case 'DiscussMessageID':
+                        this.emit('DiscussMessageID', {
+                            id:      parseInt(frames[1]),
+                            number:  parseInt(frames[2]),
+                        });
+                        break;
+
                     default:
                         // 其他訊息
                         this._log(`Unknown message: ${msg.toString()}`);
@@ -798,28 +819,29 @@ class QQBot extends EventEmitter {
                 .replace(/\]/gu, '&#93;');
     }
 
-    send(type, target, message, options) {
+    send(type, target, message, options, number = Date.now()) {
         if (type === 'PrivateMessage' || type === 'GroupMessage' || type === 'DiscussMessage') {
             let message2 = message;
             if (!(options && options.noEscape)) {
                 message2 = this.escape(message);
             }
 
-            let answer = `${type} ${target} ${str2base64(message2, this._unicode)}`;
+            let answer = `${type} ${target} ${str2base64(message2, this._unicode)} ${number}`;
             this._rawSend(answer);
         }
     }
 
-    sendPrivateMessage(qq, message, options) {
-        this.send('PrivateMessage', qq, message, options);
+    // 關於 number 之用法，詳見附錄
+    sendPrivateMessage(qq, message, options, number = Date.now()) {
+        this.send('PrivateMessage', qq, message, options, number);
     }
 
-    sendGroupMessage(group, message, options) {
-        this.send('GroupMessage', group, message, options);
+    sendGroupMessage(group, message, options, number = Date.now()) {
+        this.send('GroupMessage', group, message, options, number);
     }
 
-    sendDiscussMessage(discuss, message, options) {
-        this.send('DiscussMessage', discuss, message, options);
+    sendDiscussMessage(discuss, message, options, number = Date.now()) {
+        this.send('DiscussMessage', discuss, message, options, number);
     }
 
     get nick() {
@@ -962,8 +984,8 @@ class QQBot extends EventEmitter {
         return this._appDir;
     }
 
-    deleteMessage(msgID) {
-        let cmd = `DeleteMessage ${msgID}`;
+    deleteMessage(id) {
+        let cmd = `DeleteMessage ${id}`;
         this._rawSend(cmd);
     }
 }

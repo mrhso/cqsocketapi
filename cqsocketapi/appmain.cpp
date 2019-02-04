@@ -41,10 +41,17 @@ CQEVENT(int32_t, Initialize, 4)(int32_t AuthCode) {
 }
 
 CQEVENT(int32_t, __eventStartup, 0)() {
+	std::string appPath(CQ_getAppDirectory(appAuthCode));
+	std::string cachePath = appPath + "cache\\";
+	CreateDirectory(cachePath.c_str(), nullptr);
 	return 0;
 }
 
 CQEVENT(int32_t, __eventExit, 0)() {
+	std::string appPath(CQ_getAppDirectory(appAuthCode));
+	std::string cachePath = appPath + "cache\\";
+	RemoveDirectory(cachePath.c_str());
+
 	delete client;
 	delete server;
 	return 0;
@@ -107,7 +114,7 @@ CQEVENT(int32_t, __eventDisable, 0)() {
 /*
 * Type=21 私聊消息
 */
-CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t fromQQ, const char *msg, int32_t font) {
+CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgID, int64_t fromQQ, const char *msg, int32_t font) {
 
 	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_msg, msg, strlen(msg));
@@ -115,7 +122,7 @@ CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t 
 	const char* user_info = CQ_getStrangerInfo(appAuthCode, fromQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "PrivateMessage %I64d %s %I32d %I32d %s", fromQQ, encoded_msg, subType, msgId, user_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "PrivateMessage %I64d %s %I32d %I32d %s", fromQQ, encoded_msg, subType, msgID, user_info);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;
@@ -128,7 +135,7 @@ CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgId, int64_t 
 /*
 * Type=2 群消息
 */
-CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fromGroup, int64_t fromQQ, const char *fromAnonymous, const char *msg, int32_t font) {
+CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgID, int64_t fromGroup, int64_t fromQQ, const char *fromAnonymous, const char *msg, int32_t font) {
 
 	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_msg, msg, strlen(msg));
@@ -136,7 +143,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
 	const char* user_info = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, fromQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMessage %I64d %I64d %s %I32d %I32d %s %s", fromGroup, fromQQ, encoded_msg, subType, msgId, user_info, fromAnonymous);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMessage %I64d %I64d %s %I32d %I32d %s %s", fromGroup, fromQQ, encoded_msg, subType, msgID, user_info, fromAnonymous);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;
@@ -149,7 +156,7 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgId, int64_t fr
 /*
 * Type=4 讨论组消息
 */
-CQEVENT(int32_t, __eventDiscussMsg, 32)(int32_t subType, int32_t msgId, int64_t fromDiscuss, int64_t fromQQ, const char *msg, int32_t font) {
+CQEVENT(int32_t, __eventDiscussMsg, 32)(int32_t subType, int32_t msgID, int64_t fromDiscuss, int64_t fromQQ, const char *msg, int32_t font) {
 
 	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_msg, msg, strlen(msg));
@@ -157,7 +164,7 @@ CQEVENT(int32_t, __eventDiscussMsg, 32)(int32_t subType, int32_t msgId, int64_t 
 	const char* user_info = CQ_getStrangerInfo(appAuthCode, fromQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "DiscussMessage %I64d %I64d %s %I32d %I32d %s", fromDiscuss, fromQQ, encoded_msg, subType, msgId, user_info);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "DiscussMessage %I64d %I64d %s %I32d %I32d %s", fromDiscuss, fromQQ, encoded_msg, subType, msgID, user_info);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;

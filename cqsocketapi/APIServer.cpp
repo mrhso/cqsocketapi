@@ -35,43 +35,61 @@ void prcsClientHello(const char *payload) {
 void prcsSendPrivateMessage(const char *payload) {
 	int64_t qq;
 	char* text = new char[FRAME_PAYLOAD_SIZE];
-	sscanf_s(payload, "%I64d %[^ ]", &qq, text, sizeof(char) * FRAME_PAYLOAD_SIZE);
+	int64_t number;
+	sscanf_s(payload, "%I64d %[^ ] %I64d", &qq, text, sizeof(char) * FRAME_PAYLOAD_SIZE, &number);
 
 	char* decodedText = new char[FRAME_PAYLOAD_SIZE];
 	Base64decode(decodedText, text);
 
-	CQ_sendPrivateMsg(appAuthCode, qq, decodedText);
+	auto msgID = CQ_sendPrivateMsg(appAuthCode, qq, decodedText);
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "PrivateMessageID %I64d %I64d", msgID, number);
+	client->send(buffer, strlen(buffer));
 
 	delete[] text;
 	delete[] decodedText;
+	delete[] buffer;
 }
 
 void prcsSendGroupMessage(const char *payload) {
 	int64_t group;
 	char* text = new char[FRAME_PAYLOAD_SIZE];
-	sscanf_s(payload, "%I64d %[^ ]", &group, text, sizeof(char) * FRAME_PAYLOAD_SIZE);
+	int64_t number;
+	sscanf_s(payload, "%I64d %[^ ] %I64d", &group, text, sizeof(char) * FRAME_PAYLOAD_SIZE, &number);
 
 	char* decodedText = new char[FRAME_PAYLOAD_SIZE];
 	Base64decode(decodedText, text);
 
-	CQ_sendGroupMsg(appAuthCode, group, decodedText);
+	auto msgID = CQ_sendGroupMsg(appAuthCode, group, decodedText);
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMessageID %I64d %I64d", msgID, number);
+	client->send(buffer, strlen(buffer));
 
 	delete[] text;
 	delete[] decodedText;
+	delete[] buffer;
 }
 
 void prcsSendDiscussMessage(const char *payload) {
 	int64_t discuss;
 	char* text = new char[FRAME_PAYLOAD_SIZE];
-	sscanf_s(payload, "%I64d %[^ ]", &discuss, text, sizeof(char) * FRAME_PAYLOAD_SIZE);
+	int64_t number;
+	sscanf_s(payload, "%I64d %[^ ] %I64d", &discuss, text, sizeof(char) * FRAME_PAYLOAD_SIZE, &number);
 
 	char* decodedText = new char[FRAME_PAYLOAD_SIZE];
 	Base64decode(decodedText, text);
 
-	CQ_sendDiscussMsg(appAuthCode, discuss, decodedText);
+	auto msgID = CQ_sendDiscussMsg(appAuthCode, discuss, decodedText);
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "DiscussMessageID %I64d %I64d", msgID, number);
+	client->send(buffer, strlen(buffer));
 
 	delete[] text;
 	delete[] decodedText;
+	delete[] buffer;
 }
 
 void prcsSendLike(const char *payload) {
@@ -241,10 +259,9 @@ void prcsGetGroupMemberList(const char *payload) {
 	sscanf_s(payload, "%I64d", &group);
 	char* encoded_path = new char[FRAME_PAYLOAD_SIZE];
 	std::string appPath(CQ_getAppDirectory(appAuthCode));
-	std::string cachePath = appPath + "GroupListCache\\";
+	std::string cachePath = appPath + "cache\\";
 
-	std::string filename = std::string(cachePath) + std::to_string(group) + ".g";
-	CreateDirectory(cachePath.c_str(), nullptr);
+	std::string filename = std::string(cachePath) + std::to_string(group) + ".gml";
 	std::ofstream fout(filename.c_str(), std::ofstream::out);
 	auto list = CQ_getGroupMemberList(appAuthCode, group);
 	if (fout.is_open()) {
@@ -514,7 +531,7 @@ void APIServer::run() {
 			}
 
 			if (strcmp(prefix, "DeleteMessage") == 0) {
-				prcsDeleteMessage();
+				prcsDeleteMessage(payload);
 				continue;
 			}
 
