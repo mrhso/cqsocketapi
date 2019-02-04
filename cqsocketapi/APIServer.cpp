@@ -44,7 +44,7 @@ void prcsSendPrivateMessage(const char *payload) {
 	auto msgID = CQ_sendPrivateMsg(appAuthCode, qq, decodedText);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "PrivateMessageID %I64d %I64d", msgID, number);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "PrivateMessageID %I32d %I64d", msgID, number);
 	client->send(buffer, strlen(buffer));
 
 	delete[] text;
@@ -64,7 +64,7 @@ void prcsSendGroupMessage(const char *payload) {
 	auto msgID = CQ_sendGroupMsg(appAuthCode, group, decodedText);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMessageID %I64d %I64d", msgID, number);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMessageID %I32d %I64d", msgID, number);
 	client->send(buffer, strlen(buffer));
 
 	delete[] text;
@@ -84,7 +84,7 @@ void prcsSendDiscussMessage(const char *payload) {
 	auto msgID = CQ_sendDiscussMsg(appAuthCode, discuss, decodedText);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "DiscussMessageID %I64d %I64d", msgID, number);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "DiscussMessageID %I32d %I64d", msgID, number);
 	client->send(buffer, strlen(buffer));
 
 	delete[] text;
