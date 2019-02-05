@@ -312,11 +312,11 @@ const parseMessage = (message) => {
     let records = [];
     let at = {};
 
-    let text = message.replace(/\[CQ:(.*?),(.*?)\]/g, (_, type, param) => {
+    let text = message.replace(/\[CQ:(.*?),(.*?)\]/gu, (_, type, param) => {
         let tmp;
         switch (type) {
             case 'face':
-                tmp = param.match(/id=(\d*)/);
+                tmp = param.match(/id=(\d*)/u);
                 if (tmp && tmp[1]) {
                     return `[${faces[parseInt(tmp[1])]}]`;
                 } else {
@@ -325,7 +325,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'emoji':
-                tmp = param.match(/id=(\d*)/);
+                tmp = param.match(/id=(\d*)/u);
                 if (tmp && tmp[1]) {
                     return String.fromCodePoint(tmp[1]);
                 } else {
@@ -343,7 +343,7 @@ const parseMessage = (message) => {
 
             case 'image':
                 // [CQ:image,file=XXX.jpg]
-                tmp = param.match(/file=(.*)/);
+                tmp = param.match(/file=(.*)/u);
                 if (tmp && tmp[1]) {
                     images.push(tmp[1]);
                     return '[图片]';
@@ -354,7 +354,7 @@ const parseMessage = (message) => {
 
             case 'rich':
                 // [CQ:rich,url=XXX.jpg,text=...]
-                tmp = param.match(/url=(.*?)(,|$)/);
+                tmp = param.match(/url=(.*?)(,|$)/u);
                 if (tmp && tmp[1]) {
                     return `[分享链接：${tmp[1]}]`;
                 } else {
@@ -363,8 +363,8 @@ const parseMessage = (message) => {
                 break;
 
             case 'record':
-                // [CQ:record,file=XXX.amr] 或 XXX.silk（對講或變音）
-                tmp = param.match(/file=(.*?)(,|$)/);
+                // [CQ:record,file=XXX.amr] 或 [CQ:record,file=XXX.silk]（對講或變音）
+                tmp = param.match(/file=(.*?)(,|$)/u);
                 if (tmp && tmp[1]) {
                     records.push(tmp[1]);
                     return '[语音]';
@@ -374,7 +374,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'at':
-                tmp = param.match(/qq=(.*)/);
+                tmp = param.match(/qq=(.*)/u);
                 if (tmp && tmp[1]) {
                     if (tmp[1] === 'all') {
                         return '@全体成员';
@@ -388,7 +388,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'share':
-                tmp = param.match(/url=(.*?),/);
+                tmp = param.match(/url=(.*?)/u);
                 if (tmp && tmp[1]) {
                     return `[分享链接：${tmp[1]}]`;
                 } else {
