@@ -388,7 +388,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'share':
-                tmp = param.match(/url=(.*?)/u);
+                tmp = param.match(/url=(.*?)(,|$)/u);
                 if (tmp && tmp[1]) {
                     return `[分享链接：${tmp[1]}]`;
                 } else {
