@@ -525,9 +525,8 @@ class QQBot extends EventEmitter {
                         let userinfo = parseGroupMemberInfo(frames[6]);
                         let text = msgdata.text;
 
+                        // 匿名消息
                         if (parseInt(frames[2]) === 80000000) {
-                            // 匿名消息
-
                             let info = base642str(frames[7], this._unicode);
                             let nick = info.substring(10).split('\0')[0];
 
@@ -551,6 +550,7 @@ class QQBot extends EventEmitter {
                             type:  parseInt(frames[4]),
                             id:    parseInt(frames[5]),
                             user:  userinfo,
+                            raw:   msgdata.raw,
                         });
                         break;
 
@@ -558,12 +558,13 @@ class QQBot extends EventEmitter {
                         msgdata = parseMessage(base642str(frames[2], this._unicode));
 
                         this.emit('PrivateMessage', {
-                            from: parseInt(frames[1]),
+                            from:  parseInt(frames[1]),
                             text:  msgdata.text,
                             extra: msgdata.extra,
-                            type: parseInt(frames[3]),
-                            id:   parseInt(frames[4]),
-                            user: parseStrangerInfo(frames[5]),
+                            type:  parseInt(frames[3]),
+                            id:    parseInt(frames[4]),
+                            user:  parseStrangerInfo(frames[5]),
+                            raw:   msgdata.raw,
                         });
                         break;
 
@@ -578,6 +579,7 @@ class QQBot extends EventEmitter {
                             type:  parseInt(frames[4]),
                             id:    parseInt(frames[5]),
                             user:  parseStrangerInfo(frames[6]),
+                            raw:   msgdata.raw,
                         });
                         break;
 
