@@ -275,4 +275,4 @@ qqbot.on('PrivateMessageID', (rawdata) => {
 ### GB 18030
 酷 Q 内部处理是 UTF-8，但与插件之间交换数据是 GB 18030-2000，为何会这样呢？
 
-酷 Q 开发群对此有个神秘代码「wutaoshabi」。其是何意，我暂且蒙在鼓里。
+酷 Q 开发群对此有个神秘代码「wutaoshabi」。啊啊啊易语言。
