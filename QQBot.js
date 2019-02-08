@@ -418,6 +418,7 @@ const parseMessage = (message) => {
             records: records,
             ats: ats,
         },
+        raw: message,
     };
 };
 
