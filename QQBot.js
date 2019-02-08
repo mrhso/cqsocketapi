@@ -33,7 +33,7 @@ const toLF = (str) => {
 };
 const toCRLF = (str) => {
     // 統一轉為 LF，再轉為 CR LF
-    return toLF(str).replace(/\n/gu, '\r\n'));
+    return toLF(str).replace(/\n/gu, '\r\n');
 };
 
 const base642str = (str, unicode = false) => {

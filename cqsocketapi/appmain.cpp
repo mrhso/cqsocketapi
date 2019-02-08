@@ -41,17 +41,10 @@ CQEVENT(int32_t, Initialize, 4)(int32_t AuthCode) {
 }
 
 CQEVENT(int32_t, __eventStartup, 0)() {
-	std::string appPath(CQ_getAppDirectory(appAuthCode));
-	std::string cachePath = appPath + "cache\\";
-	CreateDirectory(cachePath.c_str(), nullptr);
 	return 0;
 }
 
 CQEVENT(int32_t, __eventExit, 0)() {
-	std::string appPath(CQ_getAppDirectory(appAuthCode));
-	std::string cachePath = appPath + "cache\\";
-	RemoveDirectory(cachePath.c_str());
-
 	delete client;
 	delete server;
 	return 0;
@@ -59,16 +52,19 @@ CQEVENT(int32_t, __eventExit, 0)() {
 
 CQEVENT(int32_t, __eventEnable, 0)() {
 
-	string configFolder = ".\\app\\" CQAPPID;
-	string configFile = configFolder + "\\config.ini";
+	string appPath(CQ_getAppDirectory(appAuthCode));
+	string configFile = appPath + "\\config.ini";
 
 	if (GetFileAttributes(configFile.data()) == -1) {
-		if (GetFileAttributes(configFolder.data()) == -1) {
-			CreateDirectory(configFolder.data(), NULL);
+		if (GetFileAttributes(appPath.data()) == -1) {
+			CreateDirectory(appPath.data(), NULL);
 		}
 		CloseHandle(CreateFile(configFile.data(), GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
 		CQ_addLog(appAuthCode, CQLOG_INFO, "提示信息", "配置文件不存在，将以默认值自动生成");
 	}
+
+	string cachePath = appPath + "cache\\";
+	CreateDirectory(cachePath.c_str(), nullptr);
 
 	stringstream ss;  string value; int valueInt = -1; char valueString[16];
 
@@ -107,6 +103,10 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 }
 
 CQEVENT(int32_t, __eventDisable, 0)() {
+
+	string appPath(CQ_getAppDirectory(appAuthCode));
+	string cachePath = appPath + "cache\\";
+	RemoveDirectory(cachePath.c_str());
 
 	return 0;
 }
