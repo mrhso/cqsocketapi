@@ -53,7 +53,7 @@ CQEVENT(int32_t, __eventExit, 0)() {
 CQEVENT(int32_t, __eventEnable, 0)() {
 
 	string appPath(CQ_getAppDirectory(appAuthCode));
-	string configFile = appPath + "\\config.ini";
+	string configFile = appPath + "config.ini";
 
 	if (GetFileAttributes(configFile.data()) == -1) {
 		if (GetFileAttributes(appPath.data()) == -1) {
