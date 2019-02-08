@@ -27,13 +27,22 @@ let fminfoCache = new Map();
 const g2u = new TextDecoder('gb18030');
 const u2g = new TextEncoder('gb18030', { NONSTANDARD_allowLegacyEncoding: true });
 
+const toLF = (str) => {
+    // 先處理 CR LF，再處理 CR
+    return str.replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
+};
+const toCRLF = (str) => {
+    // 統一轉為 LF，再轉為 CR LF
+    return toLF(str).replace(/\n/gu, '\r\n'));
+};
+
 const base642str = (str, unicode = false) => {
     let buf = Buffer.from(str, 'base64');
     if (unicode) {
         // 接收時轉為 LF
-        return buf.toString().replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
+        return toLF(buf.toString());
     } else {
-        return g2u.decode(buf).replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
+        return toLF(g2u.decode(buf));
     }
 };
 
@@ -44,9 +53,9 @@ const str2base64 = (str, unicode = false) => {
         return 'AA==';
     } else if (unicode) {
         // 傳給酷 Q 時轉為 CR LF
-        return Buffer.from(str.replace(/\r\n/gu, '\n').replace(/\r/gu, '\n').replace(/\n/gu, '\r\n')).toString('base64');
+        return Buffer.from(toCRLF(str)).toString('base64');
     } else {
-        let s = u2g.encode(str.replace(/\r\n/gu, '\n').replace(/\r/gu, '\n').replace(/\n/gu, '\r\n'));
+        let s = u2g.encode(toCRLF(str));
         return Buffer.from(s).toString('base64');
     }
 };
@@ -54,9 +63,9 @@ const str2base64 = (str, unicode = false) => {
 const buf2str = (buffer, left, right, unicode = false) => {
     let temp = buffer.slice(left, right);
     if (unicode) {
-        return temp.toString().replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
+        return toLF(temp.toString());
     } else {
-        return g2u.decode(temp).replace(/\r\n/gu, '\n').replace(/\r/gu, '\n');
+        return toLF(g2u.decode(temp));
     }
 };
 
@@ -396,6 +405,15 @@ const parseMessage = (message) => {
                 }
                 break;
 
+            case 'hb':
+                tmp = param.match(/title=(.*?))/u);
+                if (tmp && tmp[1]) {
+                    return `[红包：${tmp[1]}]`;
+                } else {
+                    return '';
+                }
+                break;
+
             default:
                 return '';
         }
@@ -407,9 +425,7 @@ const parseMessage = (message) => {
         ats.push(k);
     }
 
-    text = text.replace(/&#91;/gu, '[')
-                .replace(/&#93;/gu, ']')
-                .replace(/&amp;/gu, '&');
+    text = text.replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
 
     return {
         text: text,
@@ -817,9 +833,7 @@ class QQBot extends EventEmitter {
     }
 
     escape(text) {
-        return text.replace(/&/gu, '&amp;')
-                .replace(/\[/gu, '&#91;')
-                .replace(/\]/gu, '&#93;');
+        return text.replace(/&/gu, '&amp;').replace(/\[/gu, '&#91;').replace(/\]/gu, '&#93;');
     }
 
     send(type, target, message, options, number = Date.now()) {
