@@ -388,7 +388,7 @@ const parseMessage = (message) => {
                     if (tmp[1] === 'all') {
                         return '@全体成员';
                     } else {
-                        at[parseInt(tmp[1])] = true;
+                        at[tmp[1]] = true;
                         return `@${tmp[1]}`;                // 只給出 QQ 號，至於應該 @ 什麼內容，讓使用者處理吧
                     }
                 } else {
@@ -422,7 +422,7 @@ const parseMessage = (message) => {
     // at 去重
     let ats = [];
     for (let k in at) {
-        ats.push(k);
+        ats.push(parseInt(k));
     }
 
     text = text.replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
