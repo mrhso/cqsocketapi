@@ -45,6 +45,10 @@ CQEVENT(int32_t, __eventStartup, 0)() {
 }
 
 CQEVENT(int32_t, __eventExit, 0)() {
+	string appPath(CQ_getAppDirectory(appAuthCode));
+	string cachePath = appPath + "cache\\";
+	RemoveDirectory(cachePath.c_str());
+
 	delete client;
 	delete server;
 	return 0;
@@ -108,6 +112,8 @@ CQEVENT(int32_t, __eventDisable, 0)() {
 	string cachePath = appPath + "cache\\";
 	RemoveDirectory(cachePath.c_str());
 
+	delete client;
+	delete server;
 	return 0;
 }
 
