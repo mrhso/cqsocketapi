@@ -991,6 +991,10 @@ class QQBot extends EventEmitter {
         let cmd = `DeleteMessage ${id}`;
         this._rawSend(cmd);
     }
+
+    parseMessage(message) {
+        return parseMessage(message);
+    }
 }
 
 module.exports = QQBot;
