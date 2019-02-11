@@ -398,7 +398,7 @@ void prcsGetRecord(const char *payload) {
 	Base64decode(decodedOutFormat, outFormat);
 
 	char* encodedRecord = new char[FRAME_PAYLOAD_SIZE];
-	auto record = CQ_getRecord(decodedFile, decodedOutFormat);
+	auto record = CQ_getRecord(appAuthCode, decodedFile, decodedOutFormat);
 	Base64encode(encodedRecord, record, strlen(record));
 
 	char* buffer = new char[FRAME_SIZE];
