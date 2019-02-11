@@ -11,7 +11,7 @@ const { TextEncoder, TextDecoder } = require('text-encoding');
 const Buffer = require('buffer').Buffer;
 const EventEmitter = require('events').EventEmitter;
 const path = require('path');
-const readFileSync = require('fs').readFileSync;
+const fs = require('fs');
 
 const MAX_LEN = 33025; // 發送時的最大長度
 
@@ -664,7 +664,7 @@ class QQBot extends EventEmitter {
 
                     case 'GroupMemberList':
                         let file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
-                        let raw = Buffer.from(readFileSync(file).toString(), 'base64');
+                        let raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
                         let offset;
                         let strlen;
                         // 人數
@@ -728,6 +728,8 @@ class QQBot extends EventEmitter {
                             number:  parseInt(frames[2]),
                         });
                         break;
+
+                    // TODO GroupList
 
                     default:
                         // 其他訊息

@@ -363,6 +363,28 @@ void prcsDeleteMessage(const char *payload) {
 	CQ_deleteMsg(appAuthCode, msgID);
 }
 
+void prcsGetGroupList() {
+
+	char* encoded_path = new char[FRAME_PAYLOAD_SIZE];
+	std::string appPath(CQ_getAppDirectory(appAuthCode));
+	std::string cachePath = appPath + "cache\\";
+
+	std::string filename = std::string(cachePath) + std::to_string(group) + ".gl";
+	std::ofstream fout(filename.c_str(), std::ofstream::out);
+	auto list = CQ_getGroupList(appAuthCode);
+	if (fout.is_open()) {
+		fout << std::string(list);
+		fout.close();
+	}
+	Base64encode(encoded_path, filename.c_str(), strlen(filename.c_str()));
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupList %s", encoded_path);
+	client->send(buffer, strlen(buffer));
+
+	delete[] encoded_path;
+	delete[] buffer;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //	Not Implemented
 //////////////////////////////////////////////////////////////////////////
@@ -532,6 +554,11 @@ void APIServer::run() {
 
 			if (strcmp(prefix, "DeleteMessage") == 0) {
 				prcsDeleteMessage(payload);
+				continue;
+			}
+
+			if (strcmp(prefix, "GroupList") == 0) {
+				prcsGetGroupList();
 				continue;
 			}
 
