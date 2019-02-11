@@ -369,7 +369,7 @@ void prcsGetGroupList() {
 	std::string appPath(CQ_getAppDirectory(appAuthCode));
 	std::string cachePath = appPath + "cache\\";
 
-	std::string filename = std::string(cachePath) + std::to_string(group) + ".gl";
+	std::string filename = std::string(cachePath) + "list.gl";
 	std::ofstream fout(filename.c_str(), std::ofstream::out);
 	auto list = CQ_getGroupList(appAuthCode);
 	if (fout.is_open()) {
