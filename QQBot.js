@@ -16,8 +16,9 @@ const fs = require('fs');
 const MAX_LEN = 33025; // 發送時的最大長度
 
 let gminfoCache = new Map();
-let pminfoCache = new Map();
-let fminfoCache = new Map();
+let pinfoCache = new Map();
+let finfoCache = new Map();
+let ginfoCache = new Map();
 
 const g2u = new TextDecoder('gb18030');
 const u2g = new TextEncoder('gb18030', { NONSTANDARD_allowLegacyEncoding: true });
@@ -74,8 +75,8 @@ const parseStrangerInfo = (str) => {
         return {};
     }
 
-    if (pminfoCache.has(str)) {
-        return pminfoCache.get(str);
+    if (pinfoCache.has(str)) {
+        return pinfoCache.get(str);
     }
 
     let obj = {};
@@ -111,7 +112,7 @@ const parseStrangerInfo = (str) => {
         offset += 4;
 
         let r = Object.freeze(obj);
-        pminfoCache.set(str, r);
+        pinfoCache.set(str, r);
     } finally {
         return r;
     }
@@ -234,8 +235,8 @@ const parseFileInfo = (str) => {
         return {};
     }
 
-    if (fminfoCache.has(str)) {
-        return fminfoCache.get(str);
+    if (finfoCache.has(str)) {
+        return finfoCache.get(str);
     }
 
     let obj = {};
@@ -273,7 +274,50 @@ const parseFileInfo = (str) => {
         offset += 8;
 
         r = Object.freeze(obj);
-        fminfoCache.set(str, r);
+        finfoCache.set(str, r);
+    } finally {
+        return r;
+    }
+};
+
+/**
+ * 將 Base64 格式的 QQ 群資訊轉為 Object
+ * @param  {string} str 從 Server 接收的 Base64 碼
+ * @return {object}     包含具體 QQ 群資訊的 Object
+ */
+const parseGroupInfo = (str) => {
+    if (str === '(null)' || !str) {
+        return {};
+    }
+
+    if (ginfoCache.has(str)) {
+        return ginfoCache.get(str);
+    }
+
+    let obj = {};
+    let r = obj;
+
+    try {
+        let hi, lo;
+        let strlen;
+        let offset;
+
+        let raw = Buffer.from(str, 'base64');
+
+        // 群號
+        hi = raw.readUInt32BE(0);
+        lo = raw.readUInt32BE(4);
+        obj.group = hi*4294967296 + lo;
+        offset = 8;
+
+        // 群名
+        strlen = raw.readUInt16BE(offset);
+        offset += 2;
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
+        offset += strlen;
+
+        r = Object.freeze(obj);
+        ginfoCache.set(str, r);
     } finally {
         return r;
     }
@@ -667,13 +711,10 @@ class QQBot extends EventEmitter {
                         let raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
                         let offset;
                         let strlen;
-                        // 人數
                         let number = raw.readUInt32BE(0);
                         offset = 4;
-                        // 成員信息
                         let info = [];
                         while (offset < raw.length) {
-                            // 前兩 Byte 是後面成員信息的長度
                             strlen = raw.readUInt16BE(offset);
                             offset += 2;
                             info.push(parseGroupMemberInfo(raw.slice(offset, offset + strlen)));
@@ -729,7 +770,26 @@ class QQBot extends EventEmitter {
                         });
                         break;
 
-                    // TODO GroupList
+                    case 'GroupList':
+                        let file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
+                        let raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
+                        let offset;
+                        let strlen;
+                        let number = raw.readUInt32BE(0);
+                        offset = 4;
+                        let info = [];
+                        while (offset < raw.length) {
+                            strlen = raw.readUInt16BE(offset);
+                            offset += 2;
+                            info.push(parseGroupInfo(raw.slice(offset, offset + strlen)));
+                            offset += strlen;
+                        }
+
+                        this.emit('GroupList', {
+                            number: number,
+                            info  : info,
+                        });
+                        break;
 
                     default:
                         // 其他訊息
