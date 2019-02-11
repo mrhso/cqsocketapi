@@ -542,6 +542,12 @@ class QQBot extends EventEmitter {
                 // this.emit('Raw', msg.toString());
 
                 let msgdata;
+                let file;
+                let raw;
+                let offset;
+                let strlen;
+                let number;
+                let info;
 
                 switch (command) {
                     case 'ServerHello':
@@ -707,13 +713,11 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupMemberList':
-                        let file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
-                        let raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
-                        let offset;
-                        let strlen;
-                        let number = raw.readUInt32BE(0);
+                        file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
+                        raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
+                        number = raw.readUInt32BE(0);
                         offset = 4;
-                        let info = [];
+                        info = [];
                         while (offset < raw.length) {
                             strlen = raw.readUInt16BE(offset);
                             offset += 2;
@@ -771,13 +775,11 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupList':
-                        let file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
-                        let raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
-                        let offset;
-                        let strlen;
-                        let number = raw.readUInt32BE(0);
+                        file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
+                        raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
+                        number = raw.readUInt32BE(0);
                         offset = 4;
-                        let info = [];
+                        info = [];
                         while (offset < raw.length) {
                             strlen = raw.readUInt16BE(offset);
                             offset += 2;
@@ -1067,6 +1069,11 @@ class QQBot extends EventEmitter {
 
     parseMessage(message) {
         return parseMessage(message);
+    }
+
+    groupList() {
+        let cmd = `GroupList`;
+        this._rawSend(cmd);
     }
 }
 
