@@ -47,14 +47,7 @@ CQEVENT(int32_t, __eventStartup, 0)() {
 CQEVENT(int32_t, __eventExit, 0)() {
 	string appPath(CQ_getAppDirectory(appAuthCode));
 	string cachePath = appPath + "cache\\";
-	CFileFind finder;
-	CString path;
-	path.Format("%s*.*", cachePath);
-	BOOL bWorking = finder.FindFile(path);
-	while (bWorking) {
-		bWorking = finder.FindNextFile();
-		DeleteFile(finder.GetFilePath());
-	}
+	// TODO
 	RemoveDirectory(cachePath.c_str());
 
 	delete client;
@@ -118,14 +111,7 @@ CQEVENT(int32_t, __eventDisable, 0)() {
 
 	string appPath(CQ_getAppDirectory(appAuthCode));
 	string cachePath = appPath + "cache\\";
-	CFileFind finder;
-	CString path;
-	path.Format("%s*.*", cachePath);
-	BOOL bWorking = finder.FindFile(path);
-	while (bWorking) {
-		bWorking = finder.FindNextFile();
-		DeleteFile(finder.GetFilePath());
-	}
+	// TODO
 	RemoveDirectory(cachePath.c_str());
 
 	delete client;
