@@ -134,7 +134,6 @@ CQEVENT(int32_t, __eventPrivateMsg, 24)(int32_t subType, int32_t msgID, int64_t 
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -155,7 +154,6 @@ CQEVENT(int32_t, __eventGroupMsg, 36)(int32_t subType, int32_t msgID, int64_t fr
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -176,7 +174,6 @@ CQEVENT(int32_t, __eventDiscussMsg, 32)(int32_t subType, int32_t msgID, int64_t 
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_msg;
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -193,7 +190,6 @@ CQEVENT(int32_t, __eventSystem_GroupAdmin, 24)(int32_t subType, int32_t sendTime
 	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupAdmin %I64d %I32d %I64d %I32d %s", fromGroup, subType, beingOperateQQ, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -215,8 +211,6 @@ CQEVENT(int32_t, __eventSystem_GroupMemberDecrease, 32)(int32_t subType, int32_t
 	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberDecrease %I64d %I64d %I64d %I32d %I32d %s %s", fromGroup, fromQQ, beingOperateQQ, subType, sendTime, user_info1, user_info2);
 	client->send(buffer, strlen(buffer));
 
-	delete[] user_info1;
-	delete[] user_info2;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -233,7 +227,6 @@ CQEVENT(int32_t, __eventSystem_GroupMemberIncrease, 32)(int32_t subType, int32_t
 	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberIncrease %I64d %I64d %I64d %I32d %I32d %s", fromGroup, fromQQ, beingOperateQQ, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -251,7 +244,6 @@ CQEVENT(int32_t, __eventFriend_Add, 16)(int32_t subType, int32_t sendTime, int64
 	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "FriendAdded %I64d %I32d %I32d %s", fromQQ, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -276,7 +268,6 @@ CQEVENT(int32_t, __eventRequest_AddFriend, 24)(int32_t subType, int32_t sendTime
 
 	delete[] encoded_msg;
 	delete[] encoded_flag;
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -301,7 +292,6 @@ CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime,
 
 	delete[] encoded_msg;
 	delete[] encoded_flag;
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;
@@ -318,7 +308,6 @@ CQEVENT(int32_t, __eventGroupUpload, 28)(int32_t subType, int32_t sendTime, int6
 	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupUpload %I64d %I64d %s %I32d %I32d %s", fromGroup, fromQQ, file, subType, sendTime, user_info);
 	client->send(buffer, strlen(buffer));
 
-	delete[] user_info;
 	delete[] buffer;
 
 	return EVENT_IGNORE;

@@ -364,6 +364,7 @@ const parseMessage = (message) => {
         let tmp;
         switch (type) {
             case 'face':
+                // [CQ:face,id=13]
                 tmp = param.match(/id=(\d*)/u);
                 if (tmp && tmp[1]) {
                     return `[${faces[parseInt(tmp[1])]}]`;
@@ -373,6 +374,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'emoji':
+                // [CQ:emoji,id=128052]
                 tmp = param.match(/id=(\d*)/u);
                 if (tmp && tmp[1]) {
                     return String.fromCodePoint(tmp[1]);
@@ -401,7 +403,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'rich':
-                // [CQ:rich,url=XXX.jpg,text=...]
+                // [CQ:rich,url=https://…,text=…]
                 tmp = param.match(/url=(.*?)(,|$)/u);
                 if (tmp && tmp[1]) {
                     return `[分享链接：${tmp[1]}]`;
@@ -411,7 +413,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'record':
-                // [CQ:record,file=XXX.amr] 或 [CQ:record,file=XXX.silk]（對講或變音）
+                // [CQ:record,file=XXX.amr] 或 [CQ:record,file=XXX.silk]
                 tmp = param.match(/file=(.*?)(,|$)/u);
                 if (tmp && tmp[1]) {
                     records.push(tmp[1]);
@@ -422,6 +424,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'at':
+                // [CQ:at,qq=1145759243]
                 tmp = param.match(/qq=(\d*)/u);
                 if (tmp && tmp[1]) {
                     if (tmp[1] === 'all') {
@@ -436,6 +439,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'share':
+                // [CQ:share,url=https://…,title=…,content=…,image=…]
                 tmp = param.match(/url=(.*?)(,|$)/u);
                 if (tmp && tmp[1]) {
                     return `[分享链接：${tmp[1]}]`;
@@ -445,6 +449,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'hb':
+                // [CQ:hb,title=恭喜发财]
                 tmp = param.match(/title=(.*)/u);
                 if (tmp && tmp[1]) {
                     return `[红包：${tmp[1]}]`;
@@ -728,6 +733,7 @@ class QQBot extends EventEmitter {
                         this.emit('GroupMemberList', {
                             number: number,
                             info  : info,
+                            group : parseInt(frames[2]),
                         });
                         break;
 
@@ -790,6 +796,14 @@ class QQBot extends EventEmitter {
                         this.emit('GroupList', {
                             number: number,
                             info  : info,
+                        });
+                        break;
+
+                    case 'Record':
+                        this.emit('Record', {
+                            file:   parseInt(frames[1]),
+                            source: parseInt(frames[2]),
+                            format: parseInt(frames[3]),
                         });
                         break;
 
@@ -1073,6 +1087,11 @@ class QQBot extends EventEmitter {
 
     groupList() {
         let cmd = `GroupList`;
+        this._rawSend(cmd);
+    }
+
+    record() {
+        let cmd = `Record`;
         this._rawSend(cmd);
     }
 }

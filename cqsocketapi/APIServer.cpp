@@ -270,7 +270,7 @@ void prcsGetGroupMemberList(const char *payload) {
 	}
 	Base64encode(encoded_path, filename.c_str(), strlen(filename.c_str()));
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s", encoded_path);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s %I64d", encoded_path, group);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_path;
@@ -382,6 +382,34 @@ void prcsGetGroupList() {
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_path;
+	delete[] buffer;
+}
+
+void prcsGetRecord(const char *payload) {
+
+	char* file = new char[FRAME_PAYLOAD_SIZE / 2];
+	char* outFormat = new char[FRAME_PAYLOAD_SIZE / 2];
+
+	sscanf_s(payload, "%[^ ] %[^ ]", file, sizeof(char) * FRAME_PAYLOAD_SIZE / 2, outFormat, sizeof(char) * FRAME_PAYLOAD_SIZE / 2);
+
+	char* decodedFile = new char[FRAME_PAYLOAD_SIZE / 2];
+	char* decodedOutFormat = new char[FRAME_PAYLOAD_SIZE / 2];
+	Base64decode(decodedFile, file);
+	Base64decode(decodedOutFormat, outFormat);
+
+	char* encodedRecord = new char[FRAME_PAYLOAD_SIZE];
+	auto record = CQ_getRecord(decodedFile, decodedOutFormat);
+	Base64encode(encodedRecord, record, strlen(record));
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Record %s %s %s", encodedRecord, file, outFormat);
+	client->send(buffer, strlen(buffer));
+
+	delete[] file;
+	delete[] outFormat;
+	delete[] decodedFile;
+	delete[] decodedOutFormat;
+	delete[] encodedRecord;
 	delete[] buffer;
 }
 
@@ -559,6 +587,11 @@ void APIServer::run() {
 
 			if (strcmp(prefix, "GroupList") == 0) {
 				prcsGetGroupList();
+				continue;
+			}
+
+			if (strcmp(prefix, "Record") == 0) {
+				prcsGetRecord(payload);
 				continue;
 			}
 
