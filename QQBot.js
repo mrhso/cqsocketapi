@@ -389,6 +389,7 @@ const parseMessage = (message) => {
                 return '[原创表情]';
 
             case 'sface':
+                // TODO 格式
                 return '[小表情]';
 
             case 'image':
@@ -747,9 +748,9 @@ class QQBot extends EventEmitter {
                         }
 
                         this.emit('GroupMemberList', {
+                            group : parseInt(path.basename(file).split('.')[0]),
                             number: number,
                             info  : info,
-                            group : parseInt(path.basename(file).split('.')[0]),
                         });
                         break;
 
