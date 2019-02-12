@@ -270,7 +270,7 @@ void prcsGetGroupMemberList(const char *payload) {
 	}
 	Base64encode(encoded_path, filename.c_str(), strlen(filename.c_str()));
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s %I64d", encoded_path, group);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s", encoded_path);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_path;

@@ -392,7 +392,7 @@ const parseMessage = (message) => {
                 return '[小表情]';
 
             case 'image':
-                // [CQ:image,file=XXX.jpg]
+                // [CQ:image,file=0792531B8B74FE6F86B87ED6A3958779.png]
                 tmp = param.match(/file=(.*)/u);
                 if (tmp && tmp[1]) {
                     images.push(tmp[1]);
@@ -403,17 +403,23 @@ const parseMessage = (message) => {
                 break;
 
             case 'rich':
-                // [CQ:rich,url=https://…,text=…]
-                tmp = param.match(/url=(.*?)(,|$)/u);
-                if (tmp && tmp[1]) {
-                    return `[分享链接：${tmp[1]}]`;
+                // 分享音樂 [CQ:rich,url=http://music.163.com/song/504733843/?userid=263400453,text= 新宝島 BENI ]
+                // 協議不支援 [CQ:rich,text=QQ天气提示 升级QQ查看天气]
+                let tmp1 = param.match(/url=(.*?)(,|$)/u);
+                let tmp2 = param.match(/text=(.*)/u);
+                if (tmp1 && tmp1[1]) {
+                    return `[分享链接：${tmp1[1]}]`;
+                } else if (tmp2 && tmp2[1]) {
+                    return `[${tmp2[1]}]`;
                 } else {
                     return '';
                 }
                 break;
 
             case 'record':
-                // [CQ:record,file=XXX.amr] 或 [CQ:record,file=XXX.silk]
+                // 一般語音為 [CQ:record,file=C091016F9A0CCFF1741AF0B442BD4F70.silk]
+                // 領語音紅包為 [CQ:record,file=C091016F9A0CCFF1741AF0B442BD4F70.silk,hb=true]
+                // 依據客户端之不同，可能是 silk，也可能是 amr
                 tmp = param.match(/file=(.*?)(,|$)/u);
                 if (tmp && tmp[1]) {
                     records.push(tmp[1]);
@@ -439,7 +445,7 @@ const parseMessage = (message) => {
                 break;
 
             case 'share':
-                // [CQ:share,url=https://…,title=…,content=…,image=…]
+                // [CQ:share,url=http://www.bilibili.com/video/av42585280?share_medium=android&amp;share_source=qq&amp;bbid=XZ97F38904CBFC1747BFE02321AFCB3A3D933&amp;ts=1549692084426,title=三天之内,content=给生活找点乐子~,image=http://url.cn/5AEq2ju]
                 tmp = param.match(/url=(.*?)(,|$)/u);
                 if (tmp && tmp[1]) {
                     return `[分享链接：${tmp[1]}]`;
@@ -453,6 +459,16 @@ const parseMessage = (message) => {
                 tmp = param.match(/title=(.*)/u);
                 if (tmp && tmp[1]) {
                     return `[红包：${tmp[1]}]`;
+                } else {
+                    return '';
+                }
+                break;
+
+            case 'sign':
+                // [CQ:sign,title=我过来签个到啦,image=https://p.qpic.cn/qunsign/0/sign_30cc0f793397325b74be99fabd5f9cfcjs0qje77/750]
+                tmp = param.match(/title=(.*)(,|$)/u);
+                if (tmp && tmp[1]) {
+                    return `[签到：${tmp[1]}]`;
                 } else {
                     return '';
                 }
@@ -733,7 +749,7 @@ class QQBot extends EventEmitter {
                         this.emit('GroupMemberList', {
                             number: number,
                             info  : info,
-                            group : parseInt(frames[2]),
+                            group : parseInt(path.basename(file).split('.')[0]),
                         });
                         break;
 
@@ -801,9 +817,9 @@ class QQBot extends EventEmitter {
 
                     case 'Record':
                         this.emit('Record', {
-                            file:   parseInt(frames[1]),
-                            source: parseInt(frames[2]),
-                            format: parseInt(frames[3]),
+                            file:   base642str(frames[1], this._unicode),
+                            source: base642str(frames[2], this._unicode),
+                            format: base642str(frames[3], this._unicode),
                         });
                         break;
 
@@ -1090,8 +1106,8 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    record() {
-        let cmd = `Record`;
+    record(file, format) {
+        let cmd = `Record ${str2base64(file, this._unicode)} ${str2base64(format, this._unicode)}`;
         this._rawSend(cmd);
     }
 }
