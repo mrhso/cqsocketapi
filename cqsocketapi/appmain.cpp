@@ -2,6 +2,7 @@
 #include "string.h"
 #include "process.h"
 #include "cqp.h"
+#include "shellapi.h"
 
 #include "appmain.h"
 #include "base64.h"
@@ -46,9 +47,17 @@ CQEVENT(int32_t, __eventStartup, 0)() {
 
 CQEVENT(int32_t, __eventExit, 0)() {
 	string appPath(CQ_getAppDirectory(appAuthCode));
-	string cachePath = appPath + "cache\\";
-	// TODO
-	RemoveDirectory(cachePath.c_str());
+	string cachePath = appPath + "cache";
+	SHFILEOPSTRUCT FileOp;
+	FileOp.hwnd = NULL;
+	FileOp.wFunc = FO_DELETE;
+	FileOp.pFrom = cachePath.c_str();
+	FileOp.pTo = NULL;
+	FileOp.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI;
+	FileOp.fAnyOperationsAborted = FALSE;
+	FileOp.hNameMappings = NULL;
+	FileOp.lpszProgressTitle = NULL;
+	SHFileOperation(&FileOp);
 
 	delete client;
 	delete server;
@@ -110,9 +119,17 @@ CQEVENT(int32_t, __eventEnable, 0)() {
 CQEVENT(int32_t, __eventDisable, 0)() {
 
 	string appPath(CQ_getAppDirectory(appAuthCode));
-	string cachePath = appPath + "cache\\";
-	// TODO
-	RemoveDirectory(cachePath.c_str());
+	string cachePath = appPath + "cache";
+	SHFILEOPSTRUCT FileOp;
+	FileOp.hwnd = NULL;
+	FileOp.wFunc = FO_DELETE;
+	FileOp.pFrom = cachePath.c_str();
+	FileOp.pTo = NULL;
+	FileOp.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI;
+	FileOp.fAnyOperationsAborted = FALSE;
+	FileOp.hNameMappings = NULL;
+	FileOp.lpszProgressTitle = NULL;
+	SHFileOperation(&FileOp);
 
 	delete client;
 	delete server;
