@@ -8,8 +8,10 @@ VC++ 写的酷 Q UDP Socket API。
 2. 启用插件「CoolQ Socket API (Node.js)」。
 3. 重启酷 Q。
 
+## 设定
+插件目录的 config.ini 是设定档案。
 
-## QQBot
+## 使用
 已附带 Node.js 之实现 QQBot.js，可以直接导入使用。
 
 ## 协议
@@ -104,7 +106,7 @@ GroupMessage 123456 10000 dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0= 1
 * `AppDirectory`
 * `DeleteMessage` + MsgID
 * `GroupList`
-`Record ${str2base64(file, this._unicode)} ${str2base64(format, this._unicode)}`
+* `Record` + EncodedText (File) + EncodedText (Format)
 
 其中 IsNotCached、RejectAddRequest、SetAdmin、EnableBan、EnableAnonymous、IsDismiss 为布尔值，Duration 以秒为单位。
 
