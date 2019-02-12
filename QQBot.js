@@ -1036,7 +1036,7 @@ class QQBot extends EventEmitter {
 
     // duration 為 -1 則頭銜永久有效
     groupSpecialTitle(group, qq, newSpecialTitle, duration = -1) {
-        let cmd = `GroupSpecialTitle ${group} ${qq} ${newSpecialTitle} ${duration}`;
+        let cmd = `GroupSpecialTitle ${group} ${qq} ${str2base64(newSpecialTitle, this._unicode)} ${duration}`;
         this._rawSend(cmd);
     }
 
