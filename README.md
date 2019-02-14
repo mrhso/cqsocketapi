@@ -1,7 +1,7 @@
 # CoolQ Socket API
 VC++ 写的酷 Q UDP Socket API。
 
-[![Download](https://api.bintray.com/packages/mrhso/cqsocketapi/nodejs/images/download.svg)](https://bintray.com/mrhso/cqsocketapi/nodejs/_latestVersion) [![Build status](https://ci.appveyor.com/api/projects/status/dfrm0xppsokcr2ks?svg=true)](https://ci.appveyor.com/project/mrhso/cqsocketapi)
+[![Download](https://api.bintray.com/packages/mrhso/cqsocketapi/master/images/download.svg)](https://bintray.com/mrhso/cqsocketapi/master/_latestVersion) [![Build status](https://ci.appveyor.com/api/projects/status/dfrm0xppsokcr2ks?svg=true)](https://ci.appveyor.com/project/mrhso/cqsocketapi)
 
 ## 安装
 1. 下载 [me.cqp.ishisashi.cqsocketapi.cpk](https://dl.bintray.com/mrhso/cqsocketapi/me.cqp.ishisashi.cqsocketapi.cpk)，放入酷 Q 的 app 目录。
