@@ -28,31 +28,32 @@ Frame = Prefix (max 256) + Payload (max 32768)
 ```
 
 ### 服务端数据包
-* `ServerHello` + Timeout + PrefixSize + PayloadSize + FrameSize
-* `PrivateMessage` + QQNum + EncodedText (Message) + SubType + MsgID + EncodedText (UserInfo)
-* `GroupMessage` + GroupID + QQNum + EncodedText (Message) + SubType + MsgID + EncodedText (UserInfo) + EncodedText (Anonymous)
-* `DiscussMessage` + DiscussID + QQNum + EncodedText (Message) + SubType + MsgID + EncodedText (UserInfo)
-* `GroupAdmin` + GroupId + SubType + QQNum + SendTime + EncodedText (UserInfo)
-* `GroupMemberDecrease` + GroupID + AdminQQNum + OperatedQQNum + SubType + SendTime + EncodedText (AdminInfo) + EncodedText (UserInfo)
-* `GroupMemberIncrease` + GroupID + AdminQQNum + OperatedQQNum + SubType + SendTime + EncodedText (UserInfo)
-* `GroupMemberInfo` + EncodedText (UserInfo)
-* `StrangerInfo` + EncodedText (UserInfo)
-* `LoginNick` + EncodedText (UserName)
-* `FriendAdded` + QQNum + SubType + SendTime + EncodedText (UserInfo)
-* `RequestAddFriend` + QQNum + EncodedText (Message) + EncodedText (Flag) + SubType + SendTime + EncodedText (UserInfo)
-* `RequestAddGroup` + GroupID + QQNum + EncodedText (Message) + EncodedText (Flag) + SubType + SendTime + EncodedText (UserInfo)
-* `GroupUpload` + GroupID + QQNum + EncodedText (FileInfo) + SubType + SendTime + EncodedText (UserInfo)
-* `GroupMemberList` + EncodedText (File)
-* `Cookies` + EncodedText (Cookies)
-* `CsrfToken` + EncodedText (CsrfToken)
-* `LoginQQ` + QQNum
-* `AppDirectory` + EncodedText (AppDirectory)
-* `PrivateMessageID` + MsgID
-* `GroupMessageID` + MsgID
-* `DiscussMessageID` + MsgID
-* `GroupList` + EncodedText (File)
-* `Record` + EncodedText (File) + EncodedText (Source) + EncodedText (Format)
-
+```
+'ServerHello' + Timeout + PrefixSize + PayloadSize + FrameSize
+'PrivateMessage' + QQNum + EncodedText (Message) + SubType + MsgID + EncodedText (UserInfo)
+'GroupMessage' + GroupID + QQNum + EncodedText (Message) + SubType + MsgID + EncodedText (UserInfo) + EncodedText (Anonymous)
+'DiscussMessage' + DiscussID + QQNum + EncodedText (Message) + SubType + MsgID + EncodedText (UserInfo)
+'GroupAdmin' + GroupId + SubType + QQNum + SendTime + EncodedText (UserInfo)
+'GroupMemberDecrease' + GroupID + AdminQQNum + OperatedQQNum + SubType + SendTime + EncodedText (AdminInfo) + EncodedText (UserInfo)
+'GroupMemberIncrease' + GroupID + AdminQQNum + OperatedQQNum + SubType + SendTime + EncodedText (UserInfo)
+'GroupMemberInfo' + EncodedText (UserInfo)
+'StrangerInfo' + EncodedText (UserInfo)
+'LoginNick' + EncodedText (UserName)
+'FriendAdded' + QQNum + SubType + SendTime + EncodedText (UserInfo)
+'RequestAddFriend' + QQNum + EncodedText (Message) + EncodedText (Flag) + SubType + SendTime + EncodedText (UserInfo)
+'RequestAddGroup' + GroupID + QQNum + EncodedText (Message) + EncodedText (Flag) + SubType + SendTime + EncodedText (UserInfo)
+'GroupUpload' + GroupID + QQNum + EncodedText (FileInfo) + SubType + SendTime + EncodedText (UserInfo)
+'GroupMemberList' + EncodedText (File)
+'Cookies' + EncodedText (Cookies)
+'CsrfToken' + EncodedText (CsrfToken)
+'LoginQQ' + QQNum
+'AppDirectory' + EncodedText (AppDirectory)
+'PrivateMessageID' + MsgID
+'GroupMessageID' + MsgID
+'DiscussMessageID' + MsgID
+'GroupList' + EncodedText (File)
+'Record' + EncodedText (File) + EncodedText (Source) + EncodedText (Format)
+```
 其中：
 ```
 EncodedText = base64_encode(GB18030_encode(text))
@@ -79,35 +80,36 @@ GroupMessage 123456 10000 dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0= 1
 编码的 EncodedText 最终应解码至「test 测试 naïve💢」，其中「💢」（U+1F4A2）以 CQ 码「[CQ:emoji,id=128162]」呈现。
 
 ### 客户端数据包
-* `ClientHello` + Port
-* `PrivateMessage` + QQNum + EncodedText (Message) + Number
-* `GroupMessage` + GroupID + EncodedText (Message) + Number
-* `DiscussMessage` + DiscussID + EncodedText (Message) + Number
-* `GroupMemberInfo` + GroupID + QQNum + IsNotCached
-* `StrangerInfo` + QQNum + IsNotCached
-* `LoginNick`
-* `GroupBan` + GroupID + QQNum + Duration
-* `Like` + QQNum + Times
-* `GroupKick` + GroupID + QQNum + RejectAddRequest
-* `GroupAdmin` + GroupID + QQNum + SetAdmin
-* `GroupWholeBan` + GroupID + EnableBan
-* `GroupAnonymousBan` + GroupID + EncodedText (Anonymous)
-* `GroupAnonymous` + GroupID + EnableAnonymous
-* `GroupCard` + GroupID + QQNum + EncodedText (NewCard)
-* `GroupLeave` + GroupID + IsDismiss
-* `GroupSpecialTitle` + GroupID + QQNum + EncodedText (NewSpecialTitle) + Duration
-* `DiscussLeave` + DiscussID
-* `FriendAddRequest` + EncodedText (ResponseFlag) + ResponseOperation + EncodedText (Remark)
-* `GroupAddRequest` + EncodedText (ResponseFlag) + RequestType + ResponseOperation + EncodedText (Reason)
-* `GroupMemberList` + GroupID
-* `Cookies`
-* `CsrfToken`
-* `LoginQQ`
-* `AppDirectory`
-* `DeleteMessage` + MsgID
-* `GroupList`
-* `Record` + EncodedText (File) + EncodedText (Format)
-
+```
+'ClientHello' + Port
+'PrivateMessage' + QQNum + EncodedText (Message) + Number
+'GroupMessage' + GroupID + EncodedText (Message) + Number
+'DiscussMessage' + DiscussID + EncodedText (Message) + Number
+'GroupMemberInfo' + GroupID + QQNum + IsNotCached
+'StrangerInfo' + QQNum + IsNotCached
+'LoginNick'
+'GroupBan' + GroupID + QQNum + Duration
+'Like' + QQNum + Times
+'GroupKick' + GroupID + QQNum + RejectAddRequest
+'GroupAdmin' + GroupID + QQNum + SetAdmin
+'GroupWholeBan' + GroupID + EnableBan
+'GroupAnonymousBan' + GroupID + EncodedText (Anonymous)
+'GroupAnonymous' + GroupID + EnableAnonymous
+'GroupCard' + GroupID + QQNum + EncodedText (NewCard)
+'GroupLeave' + GroupID + IsDismiss
+'GroupSpecialTitle' + GroupID + QQNum + EncodedText (NewSpecialTitle) + Duration
+'DiscussLeave' + DiscussID
+'FriendAddRequest' + EncodedText (ResponseFlag) + ResponseOperation + EncodedText (Remark)
+'GroupAddRequest' + EncodedText (ResponseFlag) + RequestType + ResponseOperation + EncodedText (Reason)
+'GroupMemberList' + GroupID
+'Cookies'
+'CsrfToken'
+'LoginQQ'
+'AppDirectory'
+'DeleteMessage' + MsgID
+'GroupList'
+'Record' + EncodedText (File) + EncodedText (Format)
+```
 其中 IsNotCached、RejectAddRequest、SetAdmin、EnableBan、EnableAnonymous、IsDismiss 为布尔值，Duration 以秒为单位。
 
 布尔值 True、False 用 1、0 表示。
