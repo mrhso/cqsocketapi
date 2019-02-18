@@ -280,3 +280,15 @@ qqbot.on('PrivateMessageID', (rawdata) => {
 这个不正常简单来说就是空数据被忽略，导致后面数据提前，读成什么鬼样也是就意料之中了。
 
 不过 JS 的 split 就没有这种问题，这个问题有待解决。
+
+### Docker 的正确使用方法
+由于 Docker 容器与主机在 Bridge 模式下只有虚拟网桥连接，所以要利用好这个虚拟网桥。
+
+预设的 Bridge IP 自动分配，而非固定 IP，所以比较麻烦。为了使用固定 IP，我们要自定义网络。
+```
+docker network create --subnet=172.18.0.0/16 cqsocketnet
+docker run --name=coolq --rm --network cqsocketnet --ip 172.18.0.2 ……
+```
+然后再正确设定 config.ini 与 QQBot 处的 host。
+
+这样最基础的 Socket 通信就没有问题了。但有些 UDP 传输不了的大数据，会用硬盘缓存作为中介，所以还要正确设定 QQBot 处的 appDir。当然，如果不需要用到这种功能就可以不设定。
