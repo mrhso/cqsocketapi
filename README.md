@@ -14,6 +14,8 @@ VC++ 写的酷 Q UDP Socket API。
 ## 使用
 已附带 Node.js 之实现 QQBot.js，可以直接导入使用。
 
+Docker 用户请参见[附录](https://github.com/mrhso/cqsocketapi/blob/master/omake.md#docker-的正确使用方法)。
+
 ## 协议
 ### 通信
 服务端和客户端用 UDP 包通信。
