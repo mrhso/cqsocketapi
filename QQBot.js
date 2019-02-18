@@ -523,8 +523,18 @@ class QQBot extends EventEmitter {
 
     _log(message, isError) {
         if (this._debug) {
-            let dateStr = new Date().toISOString();
-            let output = `[${dateStr.substring(0,10)} ${dateStr.substring(11,19)}] ${message}`;
+            let date = new Date();
+            let zone = - date.getTimezoneOffset();
+            let dateStr = new Date(date.getTime() + 60000 * zone).toISOString();
+            let zoneStr;
+            if (zone > 0) {
+                zoneStr = `UTC+${zone / 60}`;
+            } else if (zone === 0) {
+                zoneStr = `UTC`;
+            } else {
+                zoneStr = `UTC${zone / 60}`;
+            }
+            let output = `[${dateStr.substring(0, 10)} ${dateStr.substring(11, 19)} (${zoneStr})] ${message}`;
 
             if (isError) {
                 console.error(output);
