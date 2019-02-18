@@ -919,7 +919,6 @@ class QQBot extends EventEmitter {
         this._nick = undefined;
         this._qq = undefined;
         this._cqAppDir = undefined;
-        this._setAppDir = options.appDir;
         this._appDir = this._setAppDir;
     }
 
