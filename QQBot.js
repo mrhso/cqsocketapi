@@ -487,8 +487,8 @@ const parseMessage = (message) => {
                 }
 
             case 'contact':
-                // 群邀请 [CQ:contact,id=609486016,type=group]
-                // 好友邀请 [CQ:contact,id=1145759243,type=qq]
+                // 群邀請 [CQ:contact,id=609486016,type=group]
+                // 好友邀請 [CQ:contact,id=1145759243,type=qq]
                 tmp1 = param.match(/(?:^|,)id=(.*?)(?:,|$)/u);
                 tmp2 = param.match(/(?:^|,)type=(.*?)(?:,|$)/u);
                 if (tmp1 && tmp1[1] && tmp2 && tmp2[1] === 'group') {
