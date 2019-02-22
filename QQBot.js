@@ -371,7 +371,6 @@ const parseMessage = (message) => {
                 } else {
                     return '[表情]';
                 }
-                break;
 
             case 'emoji':
                 // [CQ:emoji,id=128052]
@@ -381,7 +380,6 @@ const parseMessage = (message) => {
                 } else {
                     return '';
                 }
-                break;
 
             case 'bface':
                 // [CQ:bface,p=10278,id=42452682486D91909B7A513B8BFBC3C6]
@@ -401,7 +399,6 @@ const parseMessage = (message) => {
                 } else {
                     return '';
                 }
-                break;
 
             case 'rich':
                 // 分享音樂 [CQ:rich,url=http://music.163.com/song/504733843/?userid=263400453,text= 新宝島 BENI ]
@@ -415,7 +412,6 @@ const parseMessage = (message) => {
                 } else {
                     return '';
                 }
-                break;
 
             case 'record':
                 // 一般語音為 [CQ:record,file=C091016F9A0CCFF1741AF0B442BD4F70.silk]
@@ -428,7 +424,6 @@ const parseMessage = (message) => {
                 } else {
                     return '';
                 }
-                break;
 
             case 'at':
                 // [CQ:at,qq=1145759243]
@@ -443,7 +438,6 @@ const parseMessage = (message) => {
                 } else {
                     return '';
                 }
-                break;
 
             case 'share':
                 // [CQ:share,url=http://www.bilibili.com/video/av42585280?share_medium=android&amp;share_source=qq&amp;bbid=XZ97F38904CBFC1747BFE02321AFCB3A3D933&amp;ts=1549692084426,title=三天之内,content=给生活找点乐子~,image=http://url.cn/5AEq2ju]
@@ -453,7 +447,6 @@ const parseMessage = (message) => {
                 } else {
                     return '';
                 }
-                break;
 
             case 'hb':
                 // [CQ:hb,title=恭喜发财]
@@ -463,7 +456,6 @@ const parseMessage = (message) => {
                 } else {
                     return '';
                 }
-                break;
 
             case 'sign':
                 // [CQ:sign,title=我过来签个到啦,image=https://p.qpic.cn/qunsign/0/sign_30cc0f793397325b74be99fabd5f9cfcjs0qje77/750]
@@ -473,7 +465,6 @@ const parseMessage = (message) => {
                 } else {
                     return '';
                 }
-                break;
 
             default:
                 return '';
