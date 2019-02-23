@@ -19,8 +19,8 @@ let pinfoCache = new Map();
 let finfoCache = new Map();
 let ginfoCache = new Map();
 
-const g2u = new TextDecoder('gb18030');
-const u2g = new TextEncoder('gb18030', { NONSTANDARD_allowLegacyEncoding: true });
+const g2u = new TextDecoder('GB 18030-2000');
+const u2g = new TextEncoder('GB 18030-2000');
 
 const toLF = (str) => {
     // 先處理 CR LF，再處理 CR
