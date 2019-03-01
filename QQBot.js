@@ -768,7 +768,7 @@ class QQBot extends EventEmitter {
                         while (offset < raw.length) {
                             strlen = raw.readUInt16BE(offset);
                             offset += 2;
-                            info.push(parseGroupMemberInfo(raw.slice(offset, offset + strlen)));
+                            info.push(parseGroupMemberInfo(raw.slice(offset, offset + strlen).toString('base64')));
                             offset += strlen;
                         }
 
@@ -831,7 +831,7 @@ class QQBot extends EventEmitter {
                         while (offset < raw.length) {
                             strlen = raw.readUInt16BE(offset);
                             offset += 2;
-                            info.push(parseGroupInfo(raw.slice(offset, offset + strlen)));
+                            info.push(parseGroupInfo(raw.slice(offset, offset + strlen).toString('base64')));
                             offset += strlen;
                         }
 
