@@ -615,7 +615,6 @@ class QQBot extends EventEmitter {
                     case 'GroupMessage':
                         msgdata = parseMessage(base642str(frames[3], this._unicode));
                         let userinfo = parseGroupMemberInfo(frames[6]);
-                        let text = msgdata.text;
 
                         // 匿名消息
                         if (parseInt(frames[2]) === 80000000) {
@@ -630,7 +629,7 @@ class QQBot extends EventEmitter {
                             };
                             // Pro 得到的消息內容不含 Nick，但 Air 中含，要去掉
                             if (!this._isPro) {
-                                text = text.substring(`[${userinfo.groupCard}]:`.length);
+                                msgdata = parseMessage(msgdata.raw.substring(`&#91;${userinfo.groupCard}&#93;:`.length));
                             }
                         }
 
