@@ -636,7 +636,7 @@ class QQBot extends EventEmitter {
                         this.emit('GroupMessage', {
                             group: parseInt(frames[1]),
                             from:  parseInt(frames[2]),
-                            text:  text,
+                            text:  msgdata.text,
                             extra: msgdata.extra,
                             type:  parseInt(frames[4]),
                             id:    parseInt(frames[5]),
