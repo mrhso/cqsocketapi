@@ -101,7 +101,7 @@ void prcsSendLike(const char *payload) {
 }
 
 void prcsSetGroupKick(const char *payload) {
-	cq_bool_t rejectaddrequest;
+	CQBOOL rejectaddrequest;
 	int64_t group, qq;
 	sscanf_s(payload, "%I64d %I64d %I32d", &group, &qq, &rejectaddrequest);
 
@@ -116,7 +116,7 @@ void prcsSetGroupBan(const char *payload) {
 }
 
 void prcsSetGroupAdmin(const char *payload) {
-	cq_bool_t setadmin;
+	CQBOOL setadmin;
 	int64_t group, qq;
 	sscanf_s(payload, "%I64d %I64d %I32d", &group, &qq, &setadmin);
 
@@ -124,7 +124,7 @@ void prcsSetGroupAdmin(const char *payload) {
 }
 
 void prcsSetGroupWholeBan(const char *payload) {
-	cq_bool_t enableban;
+	CQBOOL enableban;
 	int64_t group;
 	sscanf_s(payload, "%I64d %I32d", &group, &enableban);
 
@@ -142,7 +142,7 @@ void prcsSetGroupAnonymousBan(const char *payload) {
 }
 
 void prcsSetGroupAnonymous(const char *payload) {
-	cq_bool_t enableanonymous;
+	CQBOOL enableanonymous;
 	int64_t group;
 	sscanf_s(payload, "%I64d %I32d", &group, &enableanonymous);
 
@@ -164,7 +164,7 @@ void prcsSetGroupCard(const char *payload) {
 }
 
 void prcsSetGroupLeave(const char *payload) {
-	cq_bool_t isdismiss;
+	CQBOOL isdismiss;
 	int64_t group;
 	sscanf_s(payload, "%I64d %I32d", &group, &isdismiss);
 
@@ -241,7 +241,7 @@ void prcsGroupAddRequest(const char *payload) {
 }
 
 void prcsGetGroupMemberInfo(const char *payload) {
-	cq_bool_t nocache;
+	CQBOOL nocache;
 	int64_t group, qq;
 	sscanf_s(payload, "%I64d %I64d %I32d", &group, &qq, &nocache);
 
@@ -278,7 +278,7 @@ void prcsGetGroupMemberList(const char *payload) {
 }
 
 void prcsGetStrangerInfo(const char *payload) {
-	cq_bool_t nocache;
+	CQBOOL nocache;
 	int64_t qq;
 	sscanf_s(payload, "%I64d %I32d", &qq, &nocache);
 
