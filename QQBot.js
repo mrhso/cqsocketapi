@@ -524,7 +524,7 @@ class QQBot extends EventEmitter {
         this._nick = undefined;
         this._timeoutCounter = 0;
         this._timeoutTimer = null;
-        this._isPro = options.CoolQPro;
+        this._isAirA = options.CoolQAirA;
         this._unicode = options.unicode;
         this._qq = undefined;
         // 表示酷 Q 所在環境中的目錄
@@ -533,6 +533,8 @@ class QQBot extends EventEmitter {
         // 表示實際環境的酷 Q 目錄，需要自己設定
         // Windows 用家沒填也無事，但酷 Q on Docker 用家務必準確設定！
         this._dir = this._setDir;
+        this._csImage = undefined;
+        this._csRecord = undefined;
     }
 
     _log(message, isError) {
@@ -627,8 +629,8 @@ class QQBot extends EventEmitter {
                                 groupCard: nick,
                                 anonymous: frames[7],
                             };
-                            // Pro 得到的消息內容不含 Nick，但 Air 中含，要去掉
-                            if (!this._isPro) {
+                            // Pro 及 AirB 得到的消息內容不含 Nick，但 AirA 中含，要去掉
+                            if (this._isAirA) {
                                 msgdata = parseMessage(msgdata.raw.substring(`&#91;${userinfo.groupCard}&#93;:`.length));
                             }
                         }
@@ -860,11 +862,13 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'CanSendImage':
-                        this.emit('CanSendImage', Boolean(parseInt(frames[1])));
+                        this._csImage = Boolean(parseInt(frames[1]));
+                        this.emit('CanSendImage', this._csImage);
                         break;
 
                     case 'CanSendRecord':
-                        this.emit('CanSendRecord', Boolean(parseInt(frames[1])));
+                        this._csRecord = Boolean(parseInt(frames[1]));
+                        this.emit('CanSendRecord', this._csRecord);
                         break;
 
                     default:
@@ -896,6 +900,8 @@ class QQBot extends EventEmitter {
                     let get_nick = `LoginNick`;
                     let get_qq = `LoginQQ`;
                     let get_dir = `CQDirectory`;
+                    let get_csImage = `CanSendImage`;
+                    let get_csRecord = `CanSendRecord`;
                     try {
                         this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
                     } catch (ex) {
@@ -920,6 +926,23 @@ class QQBot extends EventEmitter {
                         this.emit('Error', {
                             event: 'connect',
                             context: 'CQDirectory',
+                            error: ex,
+                        });
+                    }
+                    try {
+                        this._socket.send(get_csImage, 0, get_csImage.length, this._serverPort, this._serverHost);
+                    } catch (ex) {
+                        this.emit('Error', {
+                            event: 'connect',
+                            context: 'CanSendImage',
+                            error: ex,
+                        });
+                    }
+                        this._socket.send(get_csRecord, 0, get_csRecord.length, this._serverPort, this._serverHost);
+                    } catch (ex) {
+                        this.emit('Error', {
+                            event: 'connect',
+                            context: 'CanSendRecord',
                             error: ex,
                         });
                     }
@@ -952,6 +975,8 @@ class QQBot extends EventEmitter {
         this._qq = undefined;
         this._cqDir = undefined;
         this._dir = this._setDir;
+        this._csImage = undefined;
+        this._csRecord = undefined;
     }
 
     _rawSend(msg) {
@@ -999,8 +1024,8 @@ class QQBot extends EventEmitter {
         return this._nick;
     }
 
-    get isCoolQPro() {
-        return this._isPro;
+    get isCoolQAirA() {
+        return this._isAirA;
     }
 
     groupMemberInfo(group, qq, noCache = true) {
@@ -1025,8 +1050,6 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    // LoginNick 會隨發送 ClientHello 自動獲取
-    // 當然此函數可以確保獲得最新的 Nick
     loginNick() {
         let cmd = `LoginNick`;
         this._rawSend(cmd);
@@ -1115,8 +1138,6 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    // LoginQQ 會隨發送 ClientHello 自動獲取
-    // 當然此函數可以確保獲得最新的 QQ 號
     loginQQ() {
         let cmd = `LoginQQ`;
         this._rawSend(cmd);
@@ -1172,6 +1193,14 @@ class QQBot extends EventEmitter {
     canSendRecord() {
         let cmd = `CanSendRecord`;
         this._rawSend(cmd);
+    }
+
+    get csImage() {
+        return this._csImage;
+    }
+
+    get csRecord() {
+        return this._csRecord;
     }
 }
 
