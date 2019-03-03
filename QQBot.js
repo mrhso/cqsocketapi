@@ -527,12 +527,12 @@ class QQBot extends EventEmitter {
         this._isPro = options.CoolQPro;
         this._unicode = options.unicode;
         this._qq = undefined;
-        // 表示酷 Q 所在環境中的 CoolQ Socket API 插件目錄
-        this._cqAppDir = undefined;
-        this._setAppDir = options.appDir;
-        // 表示實際環境的 CoolQ Socket API 插件目錄，需要自己設定
+        // 表示酷 Q 所在環境中的目錄
+        this._cqDir = undefined;
+        this._setDir = options.dir;
+        // 表示實際環境的酷 Q 目錄，需要自己設定
         // Windows 用家沒填也無事，但酷 Q on Docker 用家務必準確設定！
-        this._appDir = this._setAppDir;
+        this._dir = this._setDir;
     }
 
     _log(message, isError) {
@@ -759,7 +759,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupMemberList':
-                        file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
+                        file = path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/'));
                         raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
                         number = raw.readUInt32BE(0);
                         offset = 4;
@@ -793,11 +793,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
-                        this._cqAppDir = base642str(frames[1], this._unicode);
-                        if (!this._setAppDir) {
-                            this._appDir = this._cqAppDir;
-                        };
-                        this.emit('AppDirectory', this._cqAppDir);
+                        this.emit('AppDirectory', base642str(frames[1], this._unicode));
                         break;
 
                     case 'PrivateMessageID':
@@ -822,7 +818,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupList':
-                        file = path.join(this._appDir, base642str(frames[1], this._unicode).substring(this._cqAppDir.length).replace(/\\/gu, '/'));
+                        file = path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/'));
                         raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
                         number = raw.readUInt32BE(0);
                         offset = 4;
@@ -846,6 +842,14 @@ class QQBot extends EventEmitter {
                             source: base642str(frames[2], this._unicode),
                             format: base642str(frames[3], this._unicode),
                         });
+                        break;
+
+                    case 'CQDirectory':
+                        this._cqDir = base642str(frames[1], this._unicode);
+                        if (!this._setDir) {
+                            this._dir = this._cqDir;
+                        };
+                        this.emit('AppDirectory', this._cqAppDir);
                         break;
 
                     default:
@@ -876,7 +880,7 @@ class QQBot extends EventEmitter {
                     // 所以便與發送 ClientHello 一起執行，這樣只要和酷 Q 開始通信就一定能正常獲取
                     let get_nick = `LoginNick`;
                     let get_qq = `LoginQQ`;
-                    let get_dir = `AppDirectory`;
+                    let get_dir = `CQDirectory`;
                     try {
                         this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
                     } catch (ex) {
@@ -900,7 +904,7 @@ class QQBot extends EventEmitter {
                     } catch (ex) {
                         this.emit('Error', {
                             event: 'connect',
-                            context: 'AppDirectory',
+                            context: 'CQDirectory',
                             error: ex,
                         });
                     }
@@ -931,8 +935,8 @@ class QQBot extends EventEmitter {
 
         this._nick = undefined;
         this._qq = undefined;
-        this._cqAppDir = undefined;
-        this._appDir = this._setAppDir;
+        this._cqDir = undefined;
+        this._dir = this._setDir;
     }
 
     _rawSend(msg) {
@@ -1112,10 +1116,6 @@ class QQBot extends EventEmitter {
         return this._qq;
     }
 
-    get appDir() {
-        return this._appDir;
-    }
-
     deleteMessage(id) {
         let cmd = `DeleteMessage ${id}`;
         this._rawSend(cmd);
@@ -1133,6 +1133,15 @@ class QQBot extends EventEmitter {
     record(file, format) {
         let cmd = `Record ${str2base64(file, this._unicode)} ${str2base64(format, this._unicode)}`;
         this._rawSend(cmd);
+    }
+
+    cqDirectory() {
+        let cmd = `CQDirectory`;
+        this._rawSend(cmd);
+    }
+
+    get dir() {
+        return this._dir;
     }
 }
 

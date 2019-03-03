@@ -413,6 +413,26 @@ void prcsGetRecord(const char *payload) {
 	delete[] buffer;
 }
 
+void prcsGetCQDirectory() {
+
+	char* CQFile = new char[FRAME_PAYLOAD_SIZE];
+	GetModuleFileNameA(NULL, CQFile, FRAME_PAYLOAD_SIZE);
+	std::string CQDir(CQFile);
+	size_t pos = CQDir.find_last_of("\\");
+	CQDir = CQDir.substr(0, pos + 1);
+
+	char* encoded_CQDir = new char[FRAME_PAYLOAD_SIZE];
+	Base64encode(encoded_CQDir, CQDir.c_str(), strlen(CQDir.c_str()));
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "CQDirectory %s", encoded_CQDir);
+	client->send(buffer, strlen(buffer));
+
+	delete[] CQFile;
+	delete[] encoded_CQDir;
+	delete[] buffer;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //	Not Implemented
 //////////////////////////////////////////////////////////////////////////
@@ -592,6 +612,11 @@ void APIServer::run() {
 
 			if (strcmp(prefix, "Record") == 0) {
 				prcsGetRecord(payload);
+				continue;
+			}
+
+			if (strcmp(prefix, "CQDirectory") == 0) {
+				prcsGetCQDirectory();
 				continue;
 			}
 
