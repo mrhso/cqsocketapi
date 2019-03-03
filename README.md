@@ -28,6 +28,7 @@ Docker 用户请参见[附录](https://github.com/mrhso/cqsocketapi/blob/master/
 ```
 Frame = Prefix (max 256) + Payload (max 32768)
 ```
+布尔值 True、False 用 1、0 表示。
 
 ### 服务端数据包
 ```
@@ -55,11 +56,17 @@ Frame = Prefix (max 256) + Payload (max 32768)
 'DiscussMessageID' + MsgID
 'GroupList' + EncodedText (File)
 'Record' + EncodedText (File) + EncodedText (Source) + EncodedText (Format)
+'CQDirectory' + EncodedText (CQDirectory)
+'Image' + EncodedText (File) + EncodedText (Source)
+'CanSendImage' + CanSendImage
+'CanSendRecord' + CanSendRecord
 ```
 其中：
 ```
 EncodedText = base64_encode(GB18030_encode(text))
 ```
+CanSendImage、CanSendRecord 为布尔值。
+
 UserInfo 的格式可参考附带的 QQBot.js。
 
 #### 示例
@@ -111,10 +118,12 @@ GroupMessage 123456 10000 dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0= 1
 'DeleteMessage' + MsgID
 'GroupList'
 'Record' + EncodedText (File) + EncodedText (Format)
+'CQDirectory'
+'Image' + EncodedText (File)
+'CanSendImage'
+'CanSendRecord'
 ```
 其中 IsNotCached、RejectAddRequest、SetAdmin、EnableBan、EnableAnonymous、IsDismiss 为布尔值，Duration 以秒为单位。
-
-布尔值 True、False 用 1、0 表示。
 
 #### 示例
 ```

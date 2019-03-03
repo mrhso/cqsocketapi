@@ -398,7 +398,7 @@ void prcsGetRecord(const char *payload) {
 	Base64decode(decodedOutFormat, outFormat);
 
 	char* encodedRecord = new char[FRAME_PAYLOAD_SIZE];
-	auto record = CQ_getRecord(appAuthCode, decodedFile, decodedOutFormat);
+	auto record = CQ_getRecordV2(appAuthCode, decodedFile, decodedOutFormat);
 	Base64encode(encodedRecord, record, strlen(record));
 
 	char* buffer = new char[FRAME_SIZE];
@@ -430,6 +430,51 @@ void prcsGetCQDirectory() {
 
 	delete[] CQFile;
 	delete[] encoded_CQDir;
+	delete[] buffer;
+}
+
+void prcsGetImage(const char *payload) {
+
+	char* file = new char[FRAME_PAYLOAD_SIZE];
+
+	sscanf_s(payload, "%[^ ]", file, sizeof(char) * FRAME_PAYLOAD_SIZE);
+
+	char* decodedFile = new char[FRAME_PAYLOAD_SIZE];
+	Base64decode(decodedFile, file);
+
+	char* encodedImage = new char[FRAME_PAYLOAD_SIZE];
+	auto image = CQ_getImage(appAuthCode, decodedFile);
+	Base64encode(encodedImage, image, strlen(image));
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Image %s %s", encodedImage, file);
+	client->send(buffer, strlen(buffer));
+
+	delete[] file;
+	delete[] decodedFile;
+	delete[] encodedImage;
+	delete[] buffer;
+}
+
+void prcsCanSendImage() {
+
+	auto boolean = CQ_canSendImage(appAuthCode);
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "CanSendImage %I32d", boolean);
+	client->send(buffer, strlen(buffer));
+
+	delete[] buffer;
+}
+
+void prcsCanSendRecord() {
+
+	auto boolean = CQ_canSendRecord(appAuthCode);
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "CanSendRecord %I32d", boolean);
+	client->send(buffer, strlen(buffer));
+
 	delete[] buffer;
 }
 
@@ -617,6 +662,21 @@ void APIServer::run() {
 
 			if (strcmp(prefix, "CQDirectory") == 0) {
 				prcsGetCQDirectory();
+				continue;
+			}
+
+			if (strcmp(prefix, "Image") == 0) {
+				prcsGetImage(payload);
+				continue;
+			}
+
+			if (strcmp(prefix, "CanSendImage") == 0) {
+				prcsCanSendImage();
+				continue;
+			}
+
+			if (strcmp(prefix, "CanSendRecord") == 0) {
+				prcsCanSendRecord();
 				continue;
 			}
 

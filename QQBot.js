@@ -793,7 +793,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
-                        this.emit('AppDirectory', base642str(frames[1], this._unicode));
+                        this.emit('AppDirectory', path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/')));
                         break;
 
                     case 'PrivateMessageID':
@@ -838,7 +838,7 @@ class QQBot extends EventEmitter {
 
                     case 'Record':
                         this.emit('Record', {
-                            file:   base642str(frames[1], this._unicode),
+                            file:   path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/')),
                             source: base642str(frames[2], this._unicode),
                             format: base642str(frames[3], this._unicode),
                         });
@@ -849,7 +849,22 @@ class QQBot extends EventEmitter {
                         if (!this._setDir) {
                             this._dir = this._cqDir;
                         };
-                        this.emit('AppDirectory', this._cqAppDir);
+                        this.emit('AppDirectory', this._dir);
+                        break;
+
+                    case 'Image':
+                        this.emit('Image', {
+                            file:   path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/')),
+                            source: base642str(frames[2], this._unicode),
+                        });
+                        break;
+
+                    case 'CanSendImage':
+                        this.emit('CanSendImage', Boolean(parseInt(frames[1])));
+                        break;
+
+                    case 'CanSendRecord':
+                        this.emit('CanSendRecord', Boolean(parseInt(frames[1])));
                         break;
 
                     default:
@@ -1130,7 +1145,7 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    record(file, format) {
+    record(file, format = 'wav') {
         let cmd = `Record ${str2base64(file, this._unicode)} ${str2base64(format, this._unicode)}`;
         this._rawSend(cmd);
     }
@@ -1142,6 +1157,21 @@ class QQBot extends EventEmitter {
 
     get dir() {
         return this._dir;
+    }
+
+    image(file) {
+        let cmd = `Image ${str2base64(file, this._unicode)}`;
+        this._rawSend(cmd);
+    }
+
+    canSendImage() {
+        let cmd = `CanSendImage`;
+        this._rawSend(cmd);
+    }
+
+    canSendRecord() {
+        let cmd = `CanSendRecord`;
+        this._rawSend(cmd);
     }
 }
 
