@@ -535,6 +535,7 @@ class QQBot extends EventEmitter {
         this._dir = this._setDir;
         this._csImage = undefined;
         this._csRecord = undefined;
+        this._cacheDir = undefined;
     }
 
     _log(message, isError) {
@@ -795,6 +796,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
+                        this._cache = path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/'), 'cache');
                         this.emit('AppDirectory', path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/')));
                         break;
 
@@ -938,6 +940,7 @@ class QQBot extends EventEmitter {
                             error: ex,
                         });
                     }
+                    try {
                         this._socket.send(get_csRecord, 0, get_csRecord.length, this._serverPort, this._serverHost);
                     } catch (ex) {
                         this.emit('Error', {
@@ -977,6 +980,7 @@ class QQBot extends EventEmitter {
         this._dir = this._setDir;
         this._csImage = undefined;
         this._csRecord = undefined;
+        this._cacheDir = undefined;
     }
 
     _rawSend(msg) {
@@ -1201,6 +1205,10 @@ class QQBot extends EventEmitter {
 
     get csRecord() {
         return this._csRecord;
+    }
+
+    get cacheDir() {
+        return this._cacheDir;
     }
 }
 
