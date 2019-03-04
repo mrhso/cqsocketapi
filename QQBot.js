@@ -901,9 +901,10 @@ class QQBot extends EventEmitter {
                     // 所以便與發送 ClientHello 一起執行，這樣只要和酷 Q 開始通信就一定能正常獲取
                     let get_nick = `LoginNick`;
                     let get_qq = `LoginQQ`;
-                    let get_dir = `CQDirectory`;
+                    let get_cqDir = `CQDirectory`;
                     let get_csImage = `CanSendImage`;
                     let get_csRecord = `CanSendRecord`;
+                    let get_appDir = `AppDirectory`;
                     try {
                         this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
                     } catch (ex) {
@@ -923,7 +924,7 @@ class QQBot extends EventEmitter {
                         });
                     }
                     try {
-                        this._socket.send(get_dir, 0, get_dir.length, this._serverPort, this._serverHost);
+                        this._socket.send(get_cqDir, 0, get_cqDir.length, this._serverPort, this._serverHost);
                     } catch (ex) {
                         this.emit('Error', {
                             event: 'connect',
@@ -946,6 +947,15 @@ class QQBot extends EventEmitter {
                         this.emit('Error', {
                             event: 'connect',
                             context: 'CanSendRecord',
+                            error: ex,
+                        });
+                    }
+                    try {
+                        this._socket.send(get_appDir, 0, get_appDir.length, this._serverPort, this._serverHost);
+                    } catch (ex) {
+                        this.emit('Error', {
+                            event: 'connect',
+                            context: 'AppDirectory',
                             error: ex,
                         });
                     }
