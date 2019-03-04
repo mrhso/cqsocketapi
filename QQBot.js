@@ -796,7 +796,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
-                        this._cache = path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/'), 'cache');
+                        this._cacheDir = path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/'), 'cache');
                         this.emit('AppDirectory', path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/')));
                         break;
 
