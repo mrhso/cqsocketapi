@@ -271,10 +271,10 @@ CQEVENT(int32_t, __eventFriend_Add, 16)(int32_t subType, int32_t sendTime, int64
 */
 CQEVENT(int32_t, __eventRequest_AddFriend, 24)(int32_t subType, int32_t sendTime, int64_t fromQQ, const char *msg, const char *responseFlag) {
 
-	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE / 2];
+	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_msg, msg, strlen(msg));
 
-	char* encoded_flag = new char[FRAME_PAYLOAD_SIZE / 2];
+	char* encoded_flag = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_flag, responseFlag, strlen(responseFlag));
 
 	const char* user_info = CQ_getStrangerInfo(appAuthCode, fromQQ, TRUE);
@@ -295,10 +295,10 @@ CQEVENT(int32_t, __eventRequest_AddFriend, 24)(int32_t subType, int32_t sendTime
 */
 CQEVENT(int32_t, __eventRequest_AddGroup, 32)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, const char *msg, const char *responseFlag) {
 
-	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE / 2];
+	char* encoded_msg = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_msg, msg, strlen(msg));
 
-	char* encoded_flag = new char[FRAME_PAYLOAD_SIZE / 2];
+	char* encoded_flag = new char[FRAME_PAYLOAD_SIZE];
 	Base64encode(encoded_flag, responseFlag, strlen(responseFlag));
 
 	const char* user_info = CQ_getStrangerInfo(appAuthCode, fromQQ, TRUE);

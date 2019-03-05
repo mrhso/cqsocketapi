@@ -24,7 +24,9 @@ const u2g = new TextEncoder('GB 18030-2000');
 
 const base642str = (str, unicode = false) => {
     let buf = Buffer.from(str, 'base64');
-    if (unicode) {
+    if (str === 'AA==') {
+        return '';
+    } else if (unicode) {
         // 接收時轉為 LF
         return toLF(buf.toString());
     } else {
@@ -521,7 +523,6 @@ class QQBot extends EventEmitter {
         this._debug = options.debug;
         this._serverHost = options.host || '127.0.0.1';
         this._serverPort = options.port || 11235;
-        this._nick = undefined;
         this._timeoutCounter = 0;
         this._timeoutTimer = null;
         this._isAirA = options.CoolQAirA;
@@ -533,10 +534,8 @@ class QQBot extends EventEmitter {
         // 表示實際環境的酷 Q 目錄，需要自己設定
         // Windows 用家沒填也無事，但酷 Q on Docker 用家務必準確設定！
         this._dir = this._setDir;
-        this._csImage = undefined;
-        this._csRecord = undefined;
-        this._cacheDir = undefined;
-    }
+        this._pendingQueries = new Map();
+}
 
     _log(message, isError) {
         if (this._debug) {
@@ -589,7 +588,7 @@ class QQBot extends EventEmitter {
                 let command = frames[0];
 
                 // 除錯用
-                // this.emit('Raw', msg.toString());
+                this.emit('Raw', msg.toString());
 
                 let msgdata;
                 let file;
@@ -598,21 +597,38 @@ class QQBot extends EventEmitter {
                 let strlen;
                 let number;
                 let info;
+                let key;
+                let callback;
 
                 switch (command) {
                     case 'ServerHello':
                         this._timeoutCounter = 0;
-                        this.emit('ServerHello', {
+                        info = {
                             timeout: parseInt(frames[1]),
                             prefix:  parseInt(frames[2]),
                             payload: parseInt(frames[3]),
                             frame:   parseInt(frames[4]),
-                        });
+                        }
+                        key = 'Hello';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('ServerHello', info);
                         break;
 
                     case 'LoginNick':
-                        this._nick = base642str(frames[1], this._unicode);
-                        this.emit('LoginNick', this._nick);
+                        key = 'LoginNick';
+                        info = base642str(frames[1], this._unicode);
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('LoginNick', info);
                         break;
 
                     case 'GroupMessage':
@@ -711,11 +727,27 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupMemberInfo':
-                        this.emit('GroupMemberInfo', parseGroupMemberInfo(frames[1]));
+                        info = parseGroupMemberInfo(frames[1]);
+                        key = `GroupMemberInfo_${info.group}_${info.qq}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('GroupMemberInfo', info);
                         break;
 
                     case 'StrangerInfo':
-                        this.emit('StrangerInfo', parseStrangerInfo(frames[1]));
+                        info = parseStrangerInfo(frames[1]);
+                        key = `StrangerInfo_${info.qq}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('StrangerInfo', info);
                         break;
 
                     case 'FriendAdded':
@@ -773,52 +805,113 @@ class QQBot extends EventEmitter {
                             info.push(parseGroupMemberInfo(raw.slice(offset, offset + strlen).toString('base64')));
                             offset += strlen;
                         }
-
-                        this.emit('GroupMemberList', {
+                        info = {
                             group : parseInt(path.basename(file).split('.')[0]),
                             number: number,
                             info  : info,
-                        });
+                        }
+                        key = `GroupMemberList_${info.group}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('GroupMemberList', info);
                         break;
 
                     case 'Cookies':
                         // 沒見過把 Cookie 單獨抽一部分使用的，所以整個輸出
-                        this.emit('Cookies', base642str(frames[1], this._unicode));
+                        info = base642str(frames[1], this._unicode);
+                        key = 'Cookies';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('Cookies', info);
                         break;
 
                     case 'CsrfToken':
-                        this.emit('CsrfToken', frames[1]);
+                        info = parseInt(frames[1]);
+                        key = 'CsrfToken';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('CsrfToken', info);
                         break;
 
                     case 'LoginQQ':
-                        this._qq = parseInt(frames[1]);
-                        this.emit('LoginQQ', this._qq);
+                        info = parseInt(frames[1]);
+                        key = 'LoginQQ';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('LoginQQ', info);
                         break;
 
                     case 'AppDirectory':
-                        this._cacheDir = path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/'), 'cache');
-                        this.emit('AppDirectory', path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/')));
+                        info = path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/'));
+                        key = 'AppDirectory';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('AppDirectory', info);
                         break;
 
                     case 'PrivateMessageID':
-                        this.emit('PrivateMessageID', {
-                            id:      parseInt(frames[1]),
-                            number:  parseInt(frames[2]),
-                        });
+                        info = {
+                            id:  parseInt(frames[1]),
+                            key: parseInt(frames[2]),
+                        }
+                        key = `MessageID_${info.key}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info.id);
+                        }
+
+                        this.emit('PrivateMessageID', info);
                         break;
 
                     case 'GroupMessageID':
-                        this.emit('GroupMessageID', {
-                            id:      parseInt(frames[1]),
-                            number:  parseInt(frames[2]),
-                        });
+                        info = {
+                            id:  parseInt(frames[1]),
+                            key: parseInt(frames[2]),
+                        }
+                        key = `MessageID_${info.key}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info.id);
+                        }
+
+                        this.emit('GroupMessageID', info);
                         break;
 
                     case 'DiscussMessageID':
-                        this.emit('DiscussMessageID', {
-                            id:      parseInt(frames[1]),
-                            number:  parseInt(frames[2]),
-                        });
+                        info = {
+                            id:  parseInt(frames[1]),
+                            key: parseInt(frames[2]),
+                        }
+                        key = `MessageID_${info.key}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info.id);
+                        }
+
+                        this.emit('DiscussMessageID', info);
                         break;
 
                     case 'GroupList':
@@ -833,19 +926,34 @@ class QQBot extends EventEmitter {
                             info.push(parseGroupInfo(raw.slice(offset, offset + strlen).toString('base64')));
                             offset += strlen;
                         }
-
-                        this.emit('GroupList', {
+                        info = {
                             number: number,
                             info  : info,
-                        });
+                        }
+                        key = 'GroupList';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('GroupList', info);
                         break;
 
                     case 'Record':
-                        this.emit('Record', {
+                        info = {
                             file:   path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/')),
                             source: base642str(frames[2], this._unicode),
                             format: base642str(frames[3], this._unicode),
-                        });
+                        }
+                        key = `Record_${info.source}_${info.format}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info.file);
+                        }
+
+                        this.emit('Record', info);
                         break;
 
                     case 'CQDirectory':
@@ -853,24 +961,53 @@ class QQBot extends EventEmitter {
                         if (!this._setDir) {
                             this._dir = this._cqDir;
                         };
-                        this.emit('AppDirectory', this._dir);
+                        key = 'CQDirectory';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(this._dir);
+                        }
+
+                        this.emit('CQDirectory', this._dir);
                         break;
 
                     case 'Image':
-                        this.emit('Image', {
+                        info = {
                             file:   path.join(this._dir, path.relative(this._cqDir, base642str(frames[1], this._unicode)).replace(/\\/gu, '/')),
                             source: base642str(frames[2], this._unicode),
-                        });
+                        }
+                        key = `Image_${info.source}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info.file);
+                        }
+
+                        this.emit('Image', info);
                         break;
 
                     case 'CanSendImage':
-                        this._csImage = Boolean(parseInt(frames[1]));
-                        this.emit('CanSendImage', this._csImage);
+                        info = Boolean(parseInt(frames[1]));
+                        key = 'CanSendImage';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('CanSendImage', info);
                         break;
 
                     case 'CanSendRecord':
-                        this._csRecord = Boolean(parseInt(frames[1]));
-                        this.emit('CanSendRecord', this._csRecord);
+                        info = Boolean(parseInt(frames[1]));
+                        key = 'CanSendRecord';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('CanSendRecord', info);
                         break;
 
                     default:
@@ -899,63 +1036,13 @@ class QQBot extends EventEmitter {
 
                     // 原本此處是單獨放在啟動後一秒執行（無週期），但如此先啟動 Bot 再啟動酷 Q 就得不到這些信息
                     // 所以便與發送 ClientHello 一起執行，這樣只要和酷 Q 開始通信就一定能正常獲取
-                    let get_nick = `LoginNick`;
-                    let get_qq = `LoginQQ`;
-                    let get_cqDir = `CQDirectory`;
-                    let get_csImage = `CanSendImage`;
-                    let get_csRecord = `CanSendRecord`;
-                    let get_appDir = `AppDirectory`;
-                    try {
-                        this._socket.send(get_nick, 0, get_nick.length, this._serverPort, this._serverHost);
-                    } catch (ex) {
-                        this.emit('Error', {
-                            event: 'connect',
-                            context: 'LoginNick',
-                            error: ex,
-                        });
-                    }
-                    try {
-                        this._socket.send(get_qq, 0, get_qq.length, this._serverPort, this._serverHost);
-                    } catch (ex) {
-                        this.emit('Error', {
-                            event: 'connect',
-                            context: 'LoginQQ',
-                            error: ex,
-                        });
-                    }
+                    let get_cqDir = 'CQDirectory';
                     try {
                         this._socket.send(get_cqDir, 0, get_cqDir.length, this._serverPort, this._serverHost);
                     } catch (ex) {
                         this.emit('Error', {
                             event: 'connect',
                             context: 'CQDirectory',
-                            error: ex,
-                        });
-                    }
-                    try {
-                        this._socket.send(get_csImage, 0, get_csImage.length, this._serverPort, this._serverHost);
-                    } catch (ex) {
-                        this.emit('Error', {
-                            event: 'connect',
-                            context: 'CanSendImage',
-                            error: ex,
-                        });
-                    }
-                    try {
-                        this._socket.send(get_csRecord, 0, get_csRecord.length, this._serverPort, this._serverHost);
-                    } catch (ex) {
-                        this.emit('Error', {
-                            event: 'connect',
-                            context: 'CanSendRecord',
-                            error: ex,
-                        });
-                    }
-                    try {
-                        this._socket.send(get_appDir, 0, get_appDir.length, this._serverPort, this._serverHost);
-                    } catch (ex) {
-                        this.emit('Error', {
-                            event: 'connect',
-                            context: 'AppDirectory',
                             error: ex,
                         });
                     }
@@ -984,13 +1071,7 @@ class QQBot extends EventEmitter {
             this._timeoutTimer = null;
         }
 
-        this._nick = undefined;
-        this._qq = undefined;
         this._cqDir = undefined;
-        this._dir = this._setDir;
-        this._csImage = undefined;
-        this._csRecord = undefined;
-        this._cacheDir = undefined;
     }
 
     _rawSend(msg) {
@@ -1009,33 +1090,45 @@ class QQBot extends EventEmitter {
         return text.replace(/&/gu, '&amp;').replace(/\[/gu, '&#91;').replace(/\]/gu, '&#93;');
     }
 
-    send(type, target, message, options, number = Date.now()) {
+    send(type, target, message, options) {
         if (type === 'PrivateMessage' || type === 'GroupMessage' || type === 'DiscussMessage') {
-            let message2 = message;
-            if (!(options && options.noEscape)) {
-                message2 = this.escape(message);
-            }
+            return new Promise((resolve, reject) => {
+                let key = Date.now();
+                let stop = false;
+                let timeOut = setTimeout(() => {
+                    stop = true;
+                    reject();
+                }, 1000);
+                const done = (info) => {
+                    if (!stop) {
+                        clearTimeout(timeOut);
+                        resolve(info);
+                    }
+                };
 
-            let answer = `${type} ${target} ${str2base64(message2, this._unicode)} ${number}`;
-            this._rawSend(answer);
+                this._pendingQueries.set(`MessageID_${key}`, done);
+
+                let message2 = message;
+                if (!(options && options.noEscape)) {
+                    message2 = this.escape(message);
+                }
+                let answer = `${type} ${target} ${str2base64(message2, this._unicode)} ${key}`;
+                this._rawSend(answer);
+            });
         }
     }
 
     // 關於 number 之用法，詳見附錄
-    sendPrivateMessage(qq, message, options, number = Date.now()) {
-        this.send('PrivateMessage', qq, message, options, number);
+    sendPrivateMessage(qq, message, options) {
+        return this.send('PrivateMessage', qq, message, options);
     }
 
-    sendGroupMessage(group, message, options, number = Date.now()) {
-        this.send('GroupMessage', group, message, options, number);
+    sendGroupMessage(group, message, options) {
+        return this.send('GroupMessage', group, message, options);
     }
 
-    sendDiscussMessage(discuss, message, options, number = Date.now()) {
-        this.send('DiscussMessage', discuss, message, options, number);
-    }
-
-    get nick() {
-        return this._nick;
+    sendDiscussMessage(discuss, message, options) {
+        return this.send('DiscussMessage', discuss, message, options);
     }
 
     get isCoolQAirA() {
@@ -1043,13 +1136,43 @@ class QQBot extends EventEmitter {
     }
 
     groupMemberInfo(group, qq, noCache = true) {
-        let cmd = `GroupMemberInfo ${group} ${qq} ${noCache ? 1 : 0}`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set(`GroupMemberInfo_${group}_${qq}`, done);
+            let cmd = `GroupMemberInfo ${group} ${qq} ${noCache ? 1 : 0}`;
+            this._rawSend(cmd);
+        });
     }
 
     strangerInfo(qq, noCache = true) {
-        let cmd = `StrangerInfo ${qq} ${noCache ? 1 : 0}`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set(`StrangerInfo_${qq}`, done);
+            let cmd = `StrangerInfo ${qq} ${noCache ? 1 : 0}`;
+            this._rawSend(cmd);
+        });
     }
 
     groupBan(group, qq, duration = 1800) {
@@ -1057,16 +1180,44 @@ class QQBot extends EventEmitter {
         this._rawSend(cmd);
     }
 
-    // ClientHello 會定時發送，一般不需要手動發送
-    // 因此該函數僅適用於 Debug，正常情況沒必要使用
     sayHello() {
-        let cmd = `ClientHello ${this._clientPort}`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set('Hello', done);
+            let cmd = `ClientHello ${this._clientPort}`;
+            this._rawSend(cmd);
+        });
     }
 
     loginNick() {
-        let cmd = `LoginNick`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set('LoginNick', done);
+            let cmd = 'LoginNick';
+            this._rawSend(cmd);
+        });
     }
 
     sendLike(qq, times = 1) {
@@ -1138,32 +1289,103 @@ class QQBot extends EventEmitter {
     }
 
     groupMemberList(group) {
-        let cmd = `GroupMemberList ${group}`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set(`GroupMemberList_${group}`, done);
+            let cmd = `GroupMemberList ${group}`;
+            this._rawSend(cmd);
+        });
     }
 
     cookies() {
-        let cmd = `Cookies`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set('Cookies', done);
+            let cmd = 'Cookies';
+            this._rawSend(cmd);
+        });
     }
 
     csrfToken() {
-        let cmd = `CsrfToken`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set('CsrfToken', done);
+            let cmd = 'CsrfToken';
+            this._rawSend(cmd);
+        });
     }
 
     loginQQ() {
-        let cmd = `LoginQQ`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set('LoginQQ', done);
+            let cmd = 'LoginQQ';
+            this._rawSend(cmd);
+        });
     }
 
     appDirectory() {
-        let cmd = `AppDirectory`;
-        this._rawSend(cmd);
-    }
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
 
-    get qq() {
-        return this._qq;
+            this._pendingQueries.set('AppDirectory', done);
+            let cmd = 'AppDirectory';
+            this._rawSend(cmd);
+        });
     }
 
     deleteMessage(id) {
@@ -1176,49 +1398,123 @@ class QQBot extends EventEmitter {
     }
 
     groupList() {
-        let cmd = `GroupList`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set('GroupList', done);
+            let cmd = 'GroupList';
+            this._rawSend(cmd);
+        });
     }
 
     record(file, format = 'wav') {
-        let cmd = `Record ${str2base64(file, this._unicode)} ${str2base64(format, this._unicode)}`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set(`Record_${file}_${format}`, done);
+            let cmd = `Record ${str2base64(file, this._unicode)} ${str2base64(format, this._unicode)}`;
+            this._rawSend(cmd);
+        });
     }
 
     cqDirectory() {
-        let cmd = `CQDirectory`;
-        this._rawSend(cmd);
-    }
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
 
-    get dir() {
-        return this._dir;
+            this._pendingQueries.set('CQDirectory', done);
+            let cmd = 'CQDirectory';
+            this._rawSend(cmd);
+        });
     }
 
     image(file) {
-        let cmd = `Image ${str2base64(file, this._unicode)}`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set(`Image_${file}`, done);
+            let cmd = `Image ${str2base64(file, this._unicode)}`;
+            this._rawSend(cmd);
+        });
     }
 
     canSendImage() {
-        let cmd = `CanSendImage`;
-        this._rawSend(cmd);
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set('CanSendImage', done);
+            let cmd = 'CanSendImage';
+            this._rawSend(cmd);
+        });
     }
 
     canSendRecord() {
-        let cmd = `CanSendRecord`;
-        this._rawSend(cmd);
-    }
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
 
-    get csImage() {
-        return this._csImage;
-    }
-
-    get csRecord() {
-        return this._csRecord;
-    }
-
-    get cacheDir() {
-        return this._cacheDir;
+            this._pendingQueries.set('CanSendRecord', done);
+            let cmd = 'CanSendRecord';
+            this._rawSend(cmd);
+        });
     }
 }
 
