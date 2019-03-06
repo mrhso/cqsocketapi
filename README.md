@@ -91,9 +91,9 @@ GroupMessage 123456 10000 dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0= 1
 ### 客户端数据包
 ```
 'ClientHello' + Port
-'PrivateMessage' + QQNum + EncodedText (Message) + Number
-'GroupMessage' + GroupID + EncodedText (Message) + Number
-'DiscussMessage' + DiscussID + EncodedText (Message) + Number
+'PrivateMessage' + QQNum + EncodedText (Message) + Key
+'GroupMessage' + GroupID + EncodedText (Message) + Key
+'DiscussMessage' + DiscussID + EncodedText (Message) + Key
 'GroupMemberInfo' + GroupID + QQNum + IsNotCached
 'StrangerInfo' + QQNum + IsNotCached
 'LoginNick'

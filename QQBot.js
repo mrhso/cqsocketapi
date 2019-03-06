@@ -91,7 +91,7 @@ const parseStrangerInfo = (str) => {
         // 昵稱
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
         offset += strlen;
 
         // 性別
@@ -251,7 +251,7 @@ const parseFileInfo = (str) => {
         // 檔案名
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
         offset += strlen;
 
         // 大小
@@ -306,7 +306,7 @@ const parseGroupInfo = (str) => {
         // 群名
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
         offset += strlen;
 
         r = Object.freeze(obj);
