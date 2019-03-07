@@ -353,7 +353,7 @@ const parseMessage = (message) => {
     let records = [];
     let at = {};
 
-    let text = message.replace(/\[CQ:(.*?),(.*?)\]/gu, (_, type, param) => {
+    let text = message.replace(/\n/gu, '&#10;').replace(/\[CQ:(.*?),(.*?)\]/gu, (_, type, param) => {
         let tmp;
         let tmp1;
         let tmp2;
@@ -495,7 +495,7 @@ const parseMessage = (message) => {
             default:
                 return '';
         }
-    });
+    }).replace(/&#10;/gu, '\n');
 
     // at 去重
     let ats = [];
