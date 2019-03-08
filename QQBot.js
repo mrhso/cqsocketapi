@@ -509,7 +509,7 @@ const parseMessage = (message) => {
     // at 去重
     let ats = [...new Set(at)];
 
-    text = text.replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
+    text = text.replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&#44;/gu, ',').replace(/&amp;/gu, '&');
 
     return {
         text: text,
