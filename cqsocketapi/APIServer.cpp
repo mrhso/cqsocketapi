@@ -280,7 +280,7 @@ void prcsGetGroupMemberList(const char *payload) {
 	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s", encoded_path, encoded_CQRoot);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s %s", encoded_path, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_path;
@@ -369,7 +369,7 @@ void prcsGetAppDirectory() {
 	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "AppDirectory %s", encoded_appDir, encoded_CQRoot);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "AppDirectory %s %s", encoded_appDir, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_appDir;
@@ -411,7 +411,7 @@ void prcsGetGroupList() {
 	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupList %s", encoded_path, encoded_CQRoot);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupList %s %s", encoded_path, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_path;
@@ -446,7 +446,7 @@ void prcsGetRecord(const char *payload) {
 	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Record %s %s %s", encodedRecord, file, outFormat, encoded_CQRoot);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Record %s %s %s %s", encodedRecord, file, outFormat, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] file;
@@ -482,7 +482,7 @@ void prcsGetImage(const char *payload) {
 	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Image %s %s", encodedImage, file, encoded_CQRoot);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Image %s %s %s", encodedImage, file, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] file;

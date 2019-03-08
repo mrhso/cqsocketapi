@@ -46,18 +46,17 @@ Frame = Prefix (max 256) + Payload (max 32768)
 'RequestAddFriend' + QQNum + EncodedText (Message) + EncodedText (Flag) + SubType + SendTime + EncodedText (UserInfo)
 'RequestAddGroup' + GroupID + QQNum + EncodedText (Message) + EncodedText (Flag) + SubType + SendTime + EncodedText (UserInfo)
 'GroupUpload' + GroupID + QQNum + EncodedText (FileInfo) + SubType + SendTime + EncodedText (UserInfo)
-'GroupMemberList' + EncodedText (File)
+'GroupMemberList' + EncodedText (File) + EncodedText (CQRoot)
 'Cookies' + EncodedText (Cookies)
 'CsrfToken' + EncodedText (CsrfToken)
 'LoginQQ' + QQNum
-'AppDirectory' + EncodedText (AppDirectory)
+'AppDirectory' + EncodedText (AppDirectory) + EncodedText (CQRoot)
 'PrivateMessageID' + MsgID
 'GroupMessageID' + MsgID
 'DiscussMessageID' + MsgID
-'GroupList' + EncodedText (File)
-'Record' + EncodedText (File) + EncodedText (Source) + EncodedText (Format)
-'CQDirectory' + EncodedText (CQDirectory)
-'Image' + EncodedText (File) + EncodedText (Source)
+'GroupList' + EncodedText (File) + EncodedText (CQRoot)
+'Record' + EncodedText (File) + EncodedText (Source) + EncodedText (Format) + EncodedText (CQRoot)
+'Image' + EncodedText (File) + EncodedText (Source) + EncodedText (CQRoot)
 'CanSendImage' + CanSendImage
 'CanSendRecord' + CanSendRecord
 ```
@@ -118,7 +117,6 @@ GroupMessage 123456 10000 dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0= 1
 'DeleteMessage' + MsgID
 'GroupList'
 'Record' + EncodedText (File) + EncodedText (Format)
-'CQDirectory'
 'Image' + EncodedText (File)
 'CanSendImage'
 'CanSendRecord'
