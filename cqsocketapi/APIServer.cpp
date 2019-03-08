@@ -269,11 +269,23 @@ void prcsGetGroupMemberList(const char *payload) {
 		fout.close();
 	}
 	Base64encode(encoded_path, filename.c_str(), strlen(filename.c_str()));
+
+	char* CQFile = new char[FRAME_PAYLOAD_SIZE];
+	GetModuleFileNameA(NULL, CQFile, FRAME_PAYLOAD_SIZE);
+	std::string CQRoot(CQFile);
+	size_t pos = CQRoot.find_last_of("\\");
+	CQRoot = CQRoot.substr(0, pos + 1);
+
+	char* encoded_CQRoot = new char[FRAME_PAYLOAD_SIZE];
+	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
+
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s", encoded_path);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupMemberList %s", encoded_path, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_path;
+	delete[] CQFile;
+	delete[] encoded_CQRoot;
 	delete[] buffer;
 }
 
@@ -347,11 +359,22 @@ void prcsGetAppDirectory() {
 	auto appDir = CQ_getAppDirectory(appAuthCode);
 	Base64encode(encoded_appDir, appDir, strlen(appDir));
 
+	char* CQFile = new char[FRAME_PAYLOAD_SIZE];
+	GetModuleFileNameA(NULL, CQFile, FRAME_PAYLOAD_SIZE);
+	std::string CQRoot(CQFile);
+	size_t pos = CQRoot.find_last_of("\\");
+	CQRoot = CQRoot.substr(0, pos + 1);
+
+	char* encoded_CQRoot = new char[FRAME_PAYLOAD_SIZE];
+	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
+
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "AppDirectory %s", encoded_appDir);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "AppDirectory %s", encoded_appDir, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_appDir;
+	delete[] CQFile;
+	delete[] encoded_CQRoot;
 	delete[] buffer;
 }
 
@@ -377,11 +400,23 @@ void prcsGetGroupList() {
 		fout.close();
 	}
 	Base64encode(encoded_path, filename.c_str(), strlen(filename.c_str()));
+
+	char* CQFile = new char[FRAME_PAYLOAD_SIZE];
+	GetModuleFileNameA(NULL, CQFile, FRAME_PAYLOAD_SIZE);
+	std::string CQRoot(CQFile);
+	size_t pos = CQRoot.find_last_of("\\");
+	CQRoot = CQRoot.substr(0, pos + 1);
+
+	char* encoded_CQRoot = new char[FRAME_PAYLOAD_SIZE];
+	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
+
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupList %s", encoded_path);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupList %s", encoded_path, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] encoded_path;
+	delete[] CQFile;
+	delete[] encoded_CQRoot;
 	delete[] buffer;
 }
 
@@ -401,8 +436,17 @@ void prcsGetRecord(const char *payload) {
 	auto record = CQ_getRecordV2(appAuthCode, decodedFile, decodedOutFormat);
 	Base64encode(encodedRecord, record, strlen(record));
 
+	char* CQFile = new char[FRAME_PAYLOAD_SIZE];
+	GetModuleFileNameA(NULL, CQFile, FRAME_PAYLOAD_SIZE);
+	std::string CQRoot(CQFile);
+	size_t pos = CQRoot.find_last_of("\\");
+	CQRoot = CQRoot.substr(0, pos + 1);
+
+	char* encoded_CQRoot = new char[FRAME_PAYLOAD_SIZE];
+	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
+
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Record %s %s %s", encodedRecord, file, outFormat);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Record %s %s %s", encodedRecord, file, outFormat, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] file;
@@ -410,26 +454,8 @@ void prcsGetRecord(const char *payload) {
 	delete[] decodedFile;
 	delete[] decodedOutFormat;
 	delete[] encodedRecord;
-	delete[] buffer;
-}
-
-void prcsGetCQDirectory() {
-
-	char* CQFile = new char[FRAME_PAYLOAD_SIZE];
-	GetModuleFileNameA(NULL, CQFile, FRAME_PAYLOAD_SIZE);
-	std::string CQDir(CQFile);
-	size_t pos = CQDir.find_last_of("\\");
-	CQDir = CQDir.substr(0, pos + 1);
-
-	char* encoded_CQDir = new char[FRAME_PAYLOAD_SIZE];
-	Base64encode(encoded_CQDir, CQDir.c_str(), strlen(CQDir.c_str()));
-
-	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "CQDirectory %s", encoded_CQDir);
-	client->send(buffer, strlen(buffer));
-
 	delete[] CQFile;
-	delete[] encoded_CQDir;
+	delete[] encoded_CQRoot;
 	delete[] buffer;
 }
 
@@ -446,13 +472,24 @@ void prcsGetImage(const char *payload) {
 	auto image = CQ_getImage(appAuthCode, decodedFile);
 	Base64encode(encodedImage, image, strlen(image));
 
+	char* CQFile = new char[FRAME_PAYLOAD_SIZE];
+	GetModuleFileNameA(NULL, CQFile, FRAME_PAYLOAD_SIZE);
+	std::string CQRoot(CQFile);
+	size_t pos = CQRoot.find_last_of("\\");
+	CQRoot = CQRoot.substr(0, pos + 1);
+
+	char* encoded_CQRoot = new char[FRAME_PAYLOAD_SIZE];
+	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
+
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Image %s %s", encodedImage, file);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Image %s %s", encodedImage, file, encoded_CQRoot);
 	client->send(buffer, strlen(buffer));
 
 	delete[] file;
 	delete[] decodedFile;
 	delete[] encodedImage;
+	delete[] CQFile;
+	delete[] encoded_CQRoot;
 	delete[] buffer;
 }
 
@@ -657,11 +694,6 @@ void APIServer::run() {
 
 			if (strcmp(prefix, "Record") == 0) {
 				prcsGetRecord(payload);
-				continue;
-			}
-
-			if (strcmp(prefix, "CQDirectory") == 0) {
-				prcsGetCQDirectory();
 				continue;
 			}
 
