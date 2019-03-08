@@ -19,8 +19,8 @@ let pinfoCache = new Map();
 let finfoCache = new Map();
 let ginfoCache = new Map();
 
-const g2u = new TextDecoder('GB 18030-2000');
-const u2g = new TextEncoder('GB 18030-2000');
+const g2u = (buf) => new TextDecoder('GB 18030-2000').decode(buf);
+const u2g = (str) => new TextEncoder('GB 18030-2000').encode(str);
 
 const base642str = (str, unicode = false) => {
     let buf = Buffer.from(str, 'base64');
@@ -30,7 +30,7 @@ const base642str = (str, unicode = false) => {
         // 接收時轉為 LF
         return toLF(buf.toString());
     } else {
-        return toLF(g2u.decode(buf));
+        return toLF(g2u(buf));
     }
 };
 
@@ -43,7 +43,7 @@ const str2base64 = (str, unicode = false) => {
         // 傳給酷 Q 時轉為 CR LF
         return Buffer.from(toCRLF(str)).toString('base64');
     } else {
-        let s = u2g.encode(toCRLF(str));
+        let s = u2g(toCRLF(str));
         return Buffer.from(s).toString('base64');
     }
 };
@@ -53,7 +53,7 @@ const buf2str = (buffer, left, right, unicode = false) => {
     if (unicode) {
         return toLF(temp.toString());
     } else {
-        return toLF(g2u.decode(temp));
+        return toLF(g2u(temp));
     }
 };
 
