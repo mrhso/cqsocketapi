@@ -351,7 +351,7 @@ const faces = {
 const parseMessage = (message) => {
     let images = [];
     let records = [];
-    let at = {};
+    let at = [];
 
     let text = message.replace(/\n/gu, '&#10;').replace(/\[CQ:(.*?),(.*?)\]/gu, (_, type, param) => {
         let tmp;
@@ -404,7 +404,7 @@ const parseMessage = (message) => {
                 if (tmp1 && tmp1[1]) {
                     return `[分享链接：${tmp1[1]}]`;
                 } else if (tmp2 && tmp2[1]) {
-                    return `[${tmp2[1]}]`;
+                    return tmp2[1];
                 } else {
                     return '';
                 }
@@ -428,7 +428,7 @@ const parseMessage = (message) => {
                     if (tmp[1] === 'all') {
                         return '@全体成员';
                     } else {
-                        at[tmp[1]] = true;
+                        at.push(parseInt(tmp[1]));
                         return `@${tmp[1]}`;                // 只給出 QQ 號，至於應該 @ 什麼內容，讓使用者處理吧
                     }
                 } else {
@@ -492,16 +492,22 @@ const parseMessage = (message) => {
                     return '';
                 }
 
+            case 'music':
+                // [CQ:music,type=custom,url=https://kg3.qq.com/node/play?s=tddsOFtqHK4YxtGy&amp;shareuid=66999e87222a308c36&amp;topsource=a0_pn201001004_z11_u443277772_l1_t1551967343__,title=翅膀,content=我唱了一首歌，快来听听吧。,image=http://url.cn/478RlhQ,audio=http://url.cn/5ICzaEj]
+                tmp = param.match(/(?:^|,)url=(.*?)(?:,|$)/u);
+                if (tmp1 && tmp1[1]) {
+                    return `[分享音乐：${tmp1[1]}]`;
+                } else {
+                    return '';
+                }
+
             default:
                 return '';
         }
     }).replace(/&#10;/gu, '\n');
 
     // at 去重
-    let ats = [];
-    for (let k in at) {
-        ats.push(parseInt(k));
-    }
+    let ats = [...new Set(at)];
 
     text = text.replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
 
