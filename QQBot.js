@@ -495,8 +495,8 @@ const parseMessage = (message) => {
             case 'music':
                 // [CQ:music,type=custom,url=https://kg3.qq.com/node/play?s=tddsOFtqHK4YxtGy&amp;shareuid=66999e87222a308c36&amp;topsource=a0_pn201001004_z11_u443277772_l1_t1551967343__,title=翅膀,content=我唱了一首歌，快来听听吧。,image=http://url.cn/478RlhQ,audio=http://url.cn/5ICzaEj]
                 tmp = param.match(/(?:^|,)url=(.*?)(?:,|$)/u);
-                if (tmp1 && tmp1[1]) {
-                    return `[分享音乐：${tmp1[1]}]`;
+                if (tmp && tmp[1]) {
+                    return `[分享音乐：${tmp[1]}]`;
                 } else {
                     return '';
                 }
