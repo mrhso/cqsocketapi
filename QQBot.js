@@ -493,10 +493,19 @@ const parseMessage = (message) => {
                 }
 
             case 'music':
-                // [CQ:music,type=custom,url=https://kg3.qq.com/node/play?s=tddsOFtqHK4YxtGy&amp;shareuid=66999e87222a308c36&amp;topsource=a0_pn201001004_z11_u443277772_l1_t1551967343__,title=翅膀,content=我唱了一首歌，快来听听吧。,image=http://url.cn/478RlhQ,audio=http://url.cn/5ICzaEj]
-                tmp = param.match(/(?:^|,)url=(.*?)(?:,|$)/u);
-                if (tmp && tmp[1]) {
-                    return `[分享音乐：${tmp[1]}]`;
+                // 外鏈 [CQ:music,type=custom,url=https://kg3.qq.com/node/play?s=tddsOFtqHK4YxtGy&amp;shareuid=66999e87222a308c36&amp;topsource=a0_pn201001004_z11_u443277772_l1_t1551967343__,title=翅膀,content=我唱了一首歌，快来听听吧。,image=http://url.cn/478RlhQ,audio=http://url.cn/5ICzaEj]
+                // 網易雲 [CQ:music,type=163,id=509842]
+                // QQ 音樂 [CQ:music,type=qq,id=200732275]
+                // TODO 蝦米
+                tmp = param.match(/(?:^|,)type=(.*?)(?:,|$)/u);
+                tmp1 = param.match(/(?:^|,)url=(.*?)(?:,|$)/u);
+                tmp2 = param.match(/(?:^|,)id=(.*?)(?:,|$)/u);
+                if (tmp && tmp[1] === 'custom' && tmp1 && tmp1[1]) {
+                    return `[分享音乐：${tmp1[1]}]`;
+                } else if (tmp && tmp[1] === '163' && tmp2 && tmp2[1]) {
+                    return `[分享音乐：https://music.163.com/#/song?id=${tmp2[1]}]`
+                } else if (tmp && tmp[1] === 'qq' && tmp2 && tmp2[1]) {
+                    return `[分享音乐：https://y.qq.com/n/yqq/song/${tmp2[1]}_num.html]`
                 } else {
                     return '';
                 }
