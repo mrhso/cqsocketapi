@@ -519,7 +519,7 @@ const parseMessage = (message) => {
                     return '[猜拳：石头]';
                 } else if (tmp && tmp[1] === '2') {
                     return '[猜拳：剪刀]';
-                } else if (tmp && tmp[1] === '2') {
+                } else if (tmp && tmp[1] === '3') {
                     return '[猜拳：布]';
                 } else {
                     return '[猜拳]';
