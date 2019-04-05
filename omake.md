@@ -275,3 +275,5 @@ docker run --name=coolq --rm --network cqsocketnet --ip 172.18.0.2 ……
 然后再正确设定 config.ini 与 QQBot 处的 host。
 
 这样最基础的 Socket 通信就没有问题了。但有些 UDP 传输不了的大数据，会用硬盘缓存作为中介，所以还要正确设定 QQBot 处的 dir。当然，如果不需要用到这种功能就可以不设定。
+
+另外，酷 Q 附带的 libiconv.dll 并不符合 GB 18030-2000，所以还请将魔改的 [libiconv.dll](https://dl.bintray.com/mrhso/cqsocketapi/libiconv.dll) 放入酷 Q 根目录。
