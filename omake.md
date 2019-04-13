@@ -257,6 +257,8 @@ qqbot.deleteMessage(id);
 
 酷 Q 开发群对此有个神秘代码「wutaoshabi」。啊啊啊易语言。
 
+另外 Wine 没有 CP 54936，此时酷 Q 使用 libiconv。但 libiconv 的 Pseudo-GB 18030 实在キチガイ，所以……详见「Docker 的正确使用方法」。
+
 ### 0x00
 酷 Q 部分使用 sscanf_s 拆分各数据，若遇到空数据则会不正常，故使用 0x00 对应的 AA== 传输过去。
 
