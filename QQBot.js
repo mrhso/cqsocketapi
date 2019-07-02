@@ -572,7 +572,6 @@ class QQBot extends EventEmitter {
         this._timeoutTimer = null;
         this._isAirA = options.CoolQAirA;
         this._unicode = options.unicode;
-        this._qq = undefined;
         // 表示實際環境的酷 Q 目錄，需要自己設定
         // Windows 用家沒填也無事，但酷 Q on Docker 用家務必準確設定！
         this._dir = options.dir;
