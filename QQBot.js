@@ -11,6 +11,7 @@ const { TextEncoder, TextDecoder, toLF, toCRLF } = require('ishisashiencoding');
 const EventEmitter = require('events');
 const path = require('path');
 const fs = require('fs');
+const { gcj_wgs_bored, gcj_bd } = require('ishisashimap');
 
 const MAX_LEN = 33025; // 發送時的最大長度
 
