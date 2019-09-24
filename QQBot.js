@@ -486,7 +486,7 @@ const parseMessage = (message) => {
                         tmp.push(`WGS-84: ${wgs.lat},${wgs.lon}`, `GCJ-02: ${coord.lat},${coord.lon}`, `BD-09: ${bd.lat},${bd.lon}`);
                     } else {
                         tmp.push(`WGS-84: ${coord.lat},${coord.lon}`);
-                    };
+                    }
                 }
                 if (tmp.length > 0) {
                     return `[位置：${tmp.join('\n')}]`;
