@@ -11,7 +11,7 @@ const { TextEncoder, TextDecoder, toLF, toCRLF } = require('ishisashiencoding');
 const EventEmitter = require('events');
 const path = require('path');
 const fs = require('fs');
-const { isInGoogle, gcj_wgs_bored, gcj_bd, coordRound } = require('ishisashimap');
+const { isInGoogle, gcj_wgs_bored, gcj_bd, coordsRound } = require('ishisashimap');
 
 const MAX_LEN = 33025; // 發送時的最大長度
 
@@ -492,14 +492,14 @@ const parseMessage = (message) => {
                     tmp.push(tmp2[1]);
                 }
                 if (tmp3 && tmp3[1] && tmp4 && tmp4[1]) {
-                    let coord = { lat: Number(tmp3[1]), lon: Number(tmp4[1]) };
-                    if (isInGoogle(coord)) {
+                    let coords = { lat: Number(tmp3[1]), lon: Number(tmp4[1]) };
+                    if (isInGoogle(coords)) {
                         // 非原始數據比原始數據多保留一位
-                        let wgs = coordRound(gcj_wgs_bored(coord, false), 7);
-                        let bd = coordRound(gcj_bd(coord, false), 7);
-                        tmp.push(`WGS-84: ${wgs.lat},${wgs.lon}`, `GCJ-02: ${coord.lat},${coord.lon}`, `BD-09: ${bd.lat},${bd.lon}`);
+                        let wgs = coordsRound(gcj_wgs_bored(coords, false), 7);
+                        let bd = coordsRound(gcj_bd(coords, false), 7);
+                        tmp.push(`WGS-84: ${wgs.lat},${wgs.lon}`, `GCJ-02: ${coords.lat},${coords.lon}`, `BD-09: ${bd.lat},${bd.lon}`);
                     } else {
-                        tmp.push(`WGS-84: ${coord.lat},${coord.lon}`);
+                        tmp.push(`WGS-84: ${coords.lat},${coords.lon}`);
                     }
                 }
                 return tmp.join('\n');
