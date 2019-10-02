@@ -409,7 +409,7 @@ const parseMessage = (message) => {
                     if (tmp1 && tmp1[1]) {
                         tmp.push(tmp1[1]);
                     }
-                    tmp.push('tmp2[1]');
+                    tmp.push(tmp2[1]);
                     return tmp.join('\n');
                 } else if (tmp2 && tmp2[1]) {
                     return tmp2[1];
@@ -571,7 +571,7 @@ const parseMessage = (message) => {
                 tmp = ['[骰子]'];
                 tmp1 = param.match(/(?:^|,)type=(.*?)(?:,|$)/u);
                 if (tmp1 && tmp1[1]) {
-                    tmp.push(tmp[1]);
+                    tmp.push(tmp1[1]);
                 }
                 return tmp.join('\n');
 
