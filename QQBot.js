@@ -354,6 +354,7 @@ const parseMessage = (message) => {
     let images = [];
     let records = [];
     let at = [];
+    let coords = {};
 
     let text = message.replace(/\n/gu, '&#10;').replace(/\[CQ:([^,]*?)\]/gu, '[CQ:$1,]').replace(/\[CQ:(.*?)((?:,).*?)\]/gu, (_, type, param) => {
         let tmp;
@@ -492,14 +493,20 @@ const parseMessage = (message) => {
                     tmp.push(tmp2[1]);
                 }
                 if (tmp3 && tmp3[1] && tmp4 && tmp4[1]) {
-                    let coords = { lat: Number(tmp3[1]), lon: Number(tmp4[1]) };
-                    if (isInGoogle(coords)) {
+                    let incoords = { lat: Number(tmp3[1]), lon: Number(tmp4[1]) };
+                    if (isInGoogle(incoords)) {
+                        let wgs = gcj_wgs_bored(incoords, false);
+                        let bd = gcj_bd(incoords, false);
+                        coords.wgs = wgs;
+                        coords.gcj = incoords;
+                        coords.bd = bd;
                         // 非原始數據比原始數據多保留一位
-                        let wgs = coordsRound(gcj_wgs_bored(coords, false), 7);
-                        let bd = coordsRound(gcj_bd(coords, false), 7);
-                        tmp.push(`WGS-84: ${wgs.lat},${wgs.lon}`, `GCJ-02: ${coords.lat},${coords.lon}`, `BD-09: ${bd.lat},${bd.lon}`);
+                        wgs = coordsRound(wgs, 7);
+                        bd = coordsRound(bd, 7);
+                        tmp.push(`WGS-84: ${wgs.lat},${wgs.lon}`, `GCJ-02: ${incoords.lat},${incoords.lon}`, `BD-09: ${bd.lat},${bd.lon}`);
                     } else {
-                        tmp.push(`WGS-84: ${coords.lat},${coords.lon}`);
+                        coords.wgs = incoords;
+                        tmp.push(`WGS-84: ${incoords.lat},${incoords.lon}`);
                     }
                 }
                 return tmp.join('\n');
@@ -596,6 +603,7 @@ const parseMessage = (message) => {
             images: images,
             records: records,
             ats: ats,
+            coords: coords,
         },
         raw: message,
     };
