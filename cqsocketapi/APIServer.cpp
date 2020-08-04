@@ -303,16 +303,23 @@ void prcsGetStrangerInfo(const char *payload) {
 	delete[] buffer;
 }
 
-void prcsGetCookies() {
+void prcsGetCookies(const char *payload) {
+
+	char* domain = new char[FRAME_PAYLOAD_SIZE];
+	sscanf_s(payload, "%[^ ]", domain, sizeof(char) * FRAME_PAYLOAD_SIZE);
+
+	char* decodedDomain = new char[FRAME_PAYLOAD_SIZE];
+	Base64decode(decodedDomain, domain);
 
 	char* encoded_cookies = new char[FRAME_PAYLOAD_SIZE];
-	auto cookies = CQ_getCookies(appAuthCode);
+	auto cookies = CQ_getCookiesV2(appAuthCode, decodedDomain);
 	Base64encode(encoded_cookies, cookies, strlen(cookies));
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Cookies %s", encoded_cookies);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "Cookies %s %s", encoded_cookies, domain);
 	client->send(buffer, strlen(buffer));
 
+	delete[] decodedDomain;
 	delete[] encoded_cookies;
 	delete[] buffer;
 }
@@ -515,6 +522,54 @@ void prcsCanSendRecord() {
 	delete[] buffer;
 }
 
+void prcsGetGroupInfo(const char *payload) {
+	CQBOOL nocache;
+	int64_t group;
+	sscanf_s(payload, "%I64d %I32d", &group, &nocache);
+
+	auto info = CQ_getGroupInfo(appAuthCode, group, nocache);
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupInfo %s", info);
+	client->send(buffer, strlen(buffer));
+
+	delete[] buffer;
+}
+
+void prcsGetFriendList() {
+
+	char* encoded_path = new char[FRAME_PAYLOAD_SIZE];
+	std::string appPath(CQ_getAppDirectory(appAuthCode));
+	std::string cachePath = appPath + "cache\\";
+
+	std::string filename = std::string(cachePath) + "list.fl";
+	std::ofstream fout(filename.c_str(), std::ofstream::out);
+	auto list = CQ_getFriendList(appAuthCode);
+	if (fout.is_open()) {
+		fout << std::string(list);
+		fout.close();
+	}
+	Base64encode(encoded_path, filename.c_str(), strlen(filename.c_str()));
+
+	char* CQFile = new char[FRAME_PAYLOAD_SIZE];
+	GetModuleFileNameA(NULL, CQFile, FRAME_PAYLOAD_SIZE);
+	std::string CQRoot(CQFile);
+	size_t pos = CQRoot.find_last_of("\\");
+	CQRoot = CQRoot.substr(0, pos + 1);
+
+	char* encoded_CQRoot = new char[FRAME_PAYLOAD_SIZE];
+	Base64encode(encoded_CQRoot, CQRoot.c_str(), strlen(CQRoot.c_str()));
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "FriendList %s %s", encoded_path, encoded_CQRoot);
+	client->send(buffer, strlen(buffer));
+
+	delete[] encoded_path;
+	delete[] CQFile;
+	delete[] encoded_CQRoot;
+	delete[] buffer;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //	Not Implemented
 //////////////////////////////////////////////////////////////////////////
@@ -658,7 +713,7 @@ void APIServer::run() {
 			}
 
 			if (strcmp(prefix, "Cookies") == 0) {
-				prcsGetCookies();
+				prcsGetCookies(payload);
 				continue;
 			}
 
@@ -709,6 +764,16 @@ void APIServer::run() {
 
 			if (strcmp(prefix, "CanSendRecord") == 0) {
 				prcsCanSendRecord();
+				continue;
+			}
+
+			if (strcmp(prefix, "GroupInfo") == 0) {
+				prcsGetGroupInfo();
+				continue;
+			}
+
+			if (strcmp(prefix, "FriendList") == 0) {
+				prcsGetFriendList();
 				continue;
 			}
 

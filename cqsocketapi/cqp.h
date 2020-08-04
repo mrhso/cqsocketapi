@@ -66,12 +66,15 @@ CQAPI(int32_t) CQ_setGroupAddRequestV2(int32_t auth_code, const char *response_f
 CQAPI(int64_t) CQ_getLoginQQ(int32_t auth_code);
 CQAPI(const char *) CQ_getLoginNick(int32_t auth_code);
 CQAPI(const char *) CQ_getStrangerInfo(int32_t auth_code, int64_t qq, CQBOOL no_cache);
+CQAPI(const char *) CQ_getGroupInfo(int32_t auth_code, int64_t group_id, CQBOOL no_cache);
+CQAPI(const char *) CQ_getFriendList(int32_t auth_code, CQBOOL reserved);
 CQAPI(const char *) CQ_getGroupList(int32_t auth_code);
 CQAPI(const char *) CQ_getGroupMemberList(int32_t auth_code, int64_t group_id);
 CQAPI(const char *) CQ_getGroupMemberInfoV2(int32_t auth_code, int64_t group_id, int64_t qq, CQBOOL no_cache);
 
 // Get CoolQ Information
 CQAPI(const char *) CQ_getCookies(int32_t auth_code);
+CQAPI(const char *) CQ_getCookiesV2(int32_t auth_code, const char *domain);
 CQAPI(int32_t) CQ_getCsrfToken(int32_t auth_code);
 CQAPI(const char *) CQ_getAppDirectory(int32_t auth_code);
 CQAPI(const char *) CQ_getRecord(int32_t auth_code, const char *file, const char *out_format);

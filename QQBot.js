@@ -65,8 +65,8 @@ const buf2str = (buffer, left, right, unicode = false) => {
  */
 const parseStrangerInfo = (str, qq) => {
     if (str === '(null)' || !str) {
-        // mirai 的 getStrangerInfo 似乎是空的，因此盡力去利用能利用的訊息……
-        // 比如傳遞個 QQ 號進去？
+        // Mirai-native 的 getStrangerInfo 依賴 CacheManager，因此盡力去利用能利用的資料……
+        // 比如傳個 QQ 號進去？
         if (qq) {
             return { qq };
         } else {
@@ -913,9 +913,9 @@ class QQBot extends EventEmitter {
                             offset += strlen;
                         }
                         info = {
-                            group : parseInt(path.basename(file).split('.')[0]),
+                            group:  parseInt(path.basename(file).split('.')[0]),
                             number: number,
-                            info  : info,
+                            info:   info,
                         }
                         key = `GroupMemberList_${info.group}`;
                         if (this._pendingQueries.has(key)) {
@@ -928,13 +928,16 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'Cookies':
-                        // 沒見過把 Cookie 單獨抽一部分使用的，所以整個輸出
-                        info = base642str(frames[1], this._unicode);
-                        key = 'Cookies';
+                        info = {
+                            // 沒見過把 Cookie 單獨抽一部分使用的，所以整個輸出
+                            cookie: base642str(frames[1], this._unicode),
+                            domain: base642str(frames[2], this._unicode),
+                        }
+                        key = `Cookies_${info.domain}`;
                         if (this._pendingQueries.has(key)) {
                             callback = this._pendingQueries.get(key);
                             this._pendingQueries.delete(key);
-                            callback(info);
+                            callback(info.cookie);
                         }
 
                         this.emit('Cookies', info);
@@ -1035,7 +1038,7 @@ class QQBot extends EventEmitter {
                         }
                         info = {
                             number: number,
-                            info  : info,
+                            info:   info,
                         }
                         key = 'GroupList';
                         if (this._pendingQueries.has(key)) {
@@ -1385,7 +1388,7 @@ class QQBot extends EventEmitter {
         });
     }
 
-    cookies() {
+    cookies(domain = '') {
         return new Promise((resolve, reject) => {
             let stop = false;
             let timeOut = setTimeout(() => {
@@ -1399,8 +1402,8 @@ class QQBot extends EventEmitter {
                 }
             };
 
-            this._pendingQueries.set('Cookies', done);
-            let cmd = 'Cookies';
+            this._pendingQueries.set(`Cookies_${domain}`, done);
+            let cmd = `Cookies ${str2base64(domain, this._unicode)}`;
             this._rawSend(cmd);
         });
     }

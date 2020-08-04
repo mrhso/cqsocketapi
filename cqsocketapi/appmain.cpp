@@ -329,3 +329,20 @@ CQEVENT(int32_t, __eventGroupUpload, 28)(int32_t subType, int32_t sendTime, int6
 
 	return EVENT_IGNORE;
 }
+
+/*
+* Type=104 群事件-群禁言
+*/
+CQEVENT(int32_t, __eventSystem_GroupBan, 40)(int32_t subType, int32_t sendTime, int64_t fromGroup, int64_t fromQQ, int64_t beingOperateQQ, int64_t duration) {
+
+	const char* user_info1 = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, fromQQ, TRUE);
+	const char* user_info2 = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, beingOperateQQ, TRUE);
+
+	char* buffer = new char[FRAME_SIZE];
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupBan %I64d %I64d %I64d %I32d %I32d %s %s", fromGroup, fromQQ, beingOperateQQ, subType, sendTime, user_info1, user_info2);
+	client->send(buffer, strlen(buffer));
+
+	delete[] buffer;
+
+	return EVENT_IGNORE;
+}
