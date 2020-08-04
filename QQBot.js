@@ -316,8 +316,65 @@ const parseGroupInfo = (str) => {
         obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
         offset += strlen;
 
+        if (offset === raw.length - 8) {
+            obj.count = raw.readUInt32BE(offset);
+            offset += 4;
+            obj.max = raw.readUInt32BE(offset);
+            offset += 4;
+        };
+
         r = Object.freeze(obj);
         ginfoCache.set(str, r);
+    } finally {
+        return r;
+    }
+};
+
+/**
+ * 將 Base64 格式的好友資訊轉為 Object
+ * @param  {string} str 從 Server 接收的 Base64 碼
+ * @return {object}     包含具體使用者資訊的 Object
+ */
+const parseFriendInfo = (str) => {
+    if (str === '(null)' || !str) {
+        return {};
+    }
+
+    if (pinfoCache.has(str)) {
+        return pinfoCache.get(str);
+    }
+
+    let obj = {};
+    let r = obj;
+
+    try {
+        let hi, lo;
+        let strlen;
+        let offset;
+
+        let raw = Buffer.from(str, 'base64');
+
+        // QQ 號
+        hi = raw.readUInt32BE(0);
+        lo = raw.readUInt32BE(4);
+        obj.qq = hi*4294967296 + lo;
+
+        offset = 8;
+
+        // 昵稱
+        strlen = raw.readUInt16BE(offset);
+        offset += 2;
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
+        offset += strlen;
+
+        // 備註
+        strlen = raw.readUInt16BE(offset);
+        offset += 2;
+        obj.remark = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
+        offset += strlen;
+
+        let r = Object.freeze(obj);
+        pinfoCache.set(str, r);
     } finally {
         return r;
     }
@@ -690,7 +747,7 @@ class QQBot extends EventEmitter {
                 let raw;
                 let offset;
                 let strlen;
-                let number;
+                let count;
                 let info;
                 let key;
                 let callback;
@@ -903,7 +960,7 @@ class QQBot extends EventEmitter {
                     case 'GroupMemberList':
                         file = path.join(this._dir || base642str(frames[2], this._unicode), path.win32.relative(base642str(frames[2], this._unicode), base642str(frames[1], this._unicode)).replace(/\\/gu, '/'));
                         raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
-                        number = raw.readUInt32BE(0);
+                        count = raw.readUInt32BE(0);
                         offset = 4;
                         info = [];
                         while (offset < raw.length) {
@@ -913,9 +970,9 @@ class QQBot extends EventEmitter {
                             offset += strlen;
                         }
                         info = {
-                            group:  parseInt(path.basename(file).split('.')[0]),
-                            number: number,
-                            info:   info,
+                            group: parseInt(path.basename(file).split('.')[0]),
+                            count: count,
+                            info:  info,
                         }
                         key = `GroupMemberList_${info.group}`;
                         if (this._pendingQueries.has(key)) {
@@ -1027,7 +1084,7 @@ class QQBot extends EventEmitter {
                     case 'GroupList':
                         file = path.join(this._dir || base642str(frames[2], this._unicode), path.win32.relative(base642str(frames[2], this._unicode), base642str(frames[1], this._unicode)).replace(/\\/gu, '/'));
                         raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
-                        number = raw.readUInt32BE(0);
+                        count = raw.readUInt32BE(0);
                         offset = 4;
                         info = [];
                         while (offset < raw.length) {
@@ -1037,8 +1094,8 @@ class QQBot extends EventEmitter {
                             offset += strlen;
                         }
                         info = {
-                            number: number,
-                            info:   info,
+                            count: count,
+                            info:  info,
                         }
                         key = 'GroupList';
                         if (this._pendingQueries.has(key)) {
@@ -1103,6 +1160,44 @@ class QQBot extends EventEmitter {
                         }
 
                         this.emit('CanSendRecord', info);
+                        break;
+
+                    case 'GroupInfo':
+                        info = parseGroupInfo(frames[1]);
+                        key = `GroupInfo_${info.group}`;
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('GroupInfo', info);
+                        break;
+
+                    case 'FriendList':
+                        file = path.join(this._dir || base642str(frames[2], this._unicode), path.win32.relative(base642str(frames[2], this._unicode), base642str(frames[1], this._unicode)).replace(/\\/gu, '/'));
+                        raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
+                        count = raw.readUInt32BE(0);
+                        offset = 4;
+                        info = [];
+                        while (offset < raw.length) {
+                            strlen = raw.readUInt16BE(offset);
+                            offset += 2;
+                            info.push(parseFriendInfo(raw.slice(offset, offset + strlen).toString('base64')));
+                            offset += strlen;
+                        }
+                        info = {
+                            count: count,
+                            info:  info,
+                        }
+                        key = 'FriendList';
+                        if (this._pendingQueries.has(key)) {
+                            callback = this._pendingQueries.get(key);
+                            this._pendingQueries.delete(key);
+                            callback(info);
+                        }
+
+                        this.emit('FriendList', info);
                         break;
 
                     default:
@@ -1593,6 +1688,46 @@ class QQBot extends EventEmitter {
 
             this._pendingQueries.set('CanSendRecord', done);
             let cmd = 'CanSendRecord';
+            this._rawSend(cmd);
+        });
+    }
+
+    groupInfo(group, noCache = true) {
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set(`GroupInfo_${group}`, done);
+            let cmd = `GroupInfo ${group} ${noCache ? 1 : 0}`;
+            this._rawSend(cmd);
+        });
+    }
+
+    friendList(reserved) {
+        return new Promise((resolve, reject) => {
+            let stop = false;
+            let timeOut = setTimeout(() => {
+                stop = true;
+                reject();
+            }, 1000);
+            const done = (info) => {
+                if (!stop) {
+                    clearTimeout(timeOut);
+                    resolve(info);
+                }
+            };
+
+            this._pendingQueries.set('FriendList', done);
+            let cmd = `FriendList ${reserved ? 1 : 0}`;
             this._rawSend(cmd);
         });
     }
