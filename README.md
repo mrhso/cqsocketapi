@@ -59,7 +59,7 @@ Frame = Prefix (max 256) + Payload (max 32768)
 'Image' + EncodedText (File) + EncodedText (Source) + EncodedText (CQRoot)
 'CanSendImage' + CanSendImage
 'CanSendRecord' + CanSendRecord
-'GroupBan' + GroupID + AdminQQNum + OperatedQQNum + SubType + SendTime + EncodedText (AdminInfo) + EncodedText (UserInfo)
+'GroupBan' + GroupID + AdminQQNum + OperatedQQNum + Duration + SubType + SendTime + EncodedText (AdminInfo) + EncodedText (UserInfo)
 'GroupInfo' + EncodedText (GroupInfo)
 'FriendList' + EncodedText (File) + EncodedText (CQRoot)
 ```
@@ -113,7 +113,7 @@ GroupMessage 123456 10000 dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0= 1
 'FriendAddRequest' + EncodedText (ResponseFlag) + ResponseOperation + EncodedText (Remark)
 'GroupAddRequest' + EncodedText (ResponseFlag) + RequestType + ResponseOperation + EncodedText (Reason)
 'GroupMemberList' + GroupID
-'Cookies'
+'Cookies' + EncodedText (Domain)
 'CsrfToken'
 'LoginQQ'
 'AppDirectory'
@@ -123,6 +123,8 @@ GroupMessage 123456 10000 dGVzdCCy4srUIG5hgTCKN3ZlW0NROmVtb2ppLGlkPTEyODE2Ml0= 1
 'Image' + EncodedText (File)
 'CanSendImage'
 'CanSendRecord'
+'GroupInfo' + GroupID + IsNotCached
+'FriendList' + Reserved
 ```
 其中 IsNotCached、RejectAddRequest、SetAdmin、EnableBan、EnableAnonymous、IsDismiss 为布尔值，Duration 以秒为单位。
 

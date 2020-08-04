@@ -860,7 +860,7 @@ class QQBot extends EventEmitter {
                     case 'GroupAdmin':
                         this.emit('GroupAdmin', {
                             group:  parseInt(frames[1]),
-                            type:   parseInt(frames[2]),      // 1: 取消管理員，2: 設置管理員
+                            type:   parseInt(frames[2]),      // 1：取消管理員，2：設置管理員
                             target: parseInt(frames[3]),
                             time:   parseInt(frames[4]),
                             user:   parseGroupMemberInfo(frames[5]),
@@ -872,7 +872,7 @@ class QQBot extends EventEmitter {
                             group:       parseInt(frames[1]),
                             adminQQ:     parseInt(frames[2]),      // 管理員 QQ，自行離開時為 0
                             target:      parseInt(frames[3]),
-                            type:        parseInt(frames[4]),      // 1: 自行離開，2: 他人被踢，3: 自己被踢
+                            type:        parseInt(frames[4]),      // 1：自行離開，2：他人被踢，3：自己被踢
                             time:        parseInt(frames[5]),
                             user_admin:  parseGroupMemberInfo(frames[6]),
                             user_target: parseStrangerInfo(frames[7], parseInt(frames[3])),
@@ -884,7 +884,7 @@ class QQBot extends EventEmitter {
                             group:       parseInt(frames[1]),
                             admin:       parseInt(frames[2]),      // 管理員 QQ
                             target:      parseInt(frames[3]),
-                            type:        parseInt(frames[4]),      // 1: 管理員同意，2: 管理員邀請
+                            type:        parseInt(frames[4]),      // 1：管理員同意，2：管理員邀請
                             time:        parseInt(frames[5]),
                             user_target: parseGroupMemberInfo(frames[6]),
                         });
@@ -1198,6 +1198,19 @@ class QQBot extends EventEmitter {
                         }
 
                         this.emit('FriendList', info);
+                        break;
+
+                    case 'GroupBan':
+                        this.emit('GroupBan', {
+                            group:       parseInt(frames[1]),
+                            adminQQ:     parseInt(frames[2]),
+                            target:      parseInt(frames[3]),
+                            duration:    parseInt(frames[4]),
+                            type:        parseInt(frames[5]),      // 1：被解禁，2：被禁言
+                            time:        parseInt(frames[6]),
+                            user_admin:  parseGroupMemberInfo(frames[7]),
+                            user_target: parseGroupMemberInfo(frames[8]),
+                        });
                         break;
 
                     default:
