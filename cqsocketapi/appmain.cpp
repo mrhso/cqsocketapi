@@ -339,7 +339,7 @@ CQEVENT(int32_t, __eventSystem_GroupBan, 40)(int32_t subType, int32_t sendTime, 
 	const char* user_info2 = CQ_getGroupMemberInfoV2(appAuthCode, fromGroup, beingOperateQQ, TRUE);
 
 	char* buffer = new char[FRAME_SIZE];
-	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupBan %I64d %I64d %I64d %I32d %I32d %s %s", fromGroup, fromQQ, beingOperateQQ, duration, subType, sendTime, user_info1, user_info2);
+	sprintf_s(buffer, FRAME_SIZE * sizeof(char), "GroupBan %I64d %I64d %I64d %I64d %I32d %I32d %s %s", fromGroup, fromQQ, beingOperateQQ, duration, subType, sendTime, user_info1, user_info2);
 	client->send(buffer, strlen(buffer));
 
 	delete[] buffer;
