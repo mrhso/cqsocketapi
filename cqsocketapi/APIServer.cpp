@@ -536,7 +536,10 @@ void prcsGetGroupInfo(const char *payload) {
 	delete[] buffer;
 }
 
-void prcsGetFriendList() {
+void prcsGetFriendList(const char *payload) {
+
+	CQBOOL reserved;
+	sscanf_s(payload, "%I32d", &reserved);
 
 	char* encoded_path = new char[FRAME_PAYLOAD_SIZE];
 	std::string appPath(CQ_getAppDirectory(appAuthCode));
@@ -544,7 +547,7 @@ void prcsGetFriendList() {
 
 	std::string filename = std::string(cachePath) + "list.fl";
 	std::ofstream fout(filename.c_str(), std::ofstream::out);
-	auto list = CQ_getFriendList(appAuthCode);
+	auto list = CQ_getFriendList(appAuthCode, reserved);
 	if (fout.is_open()) {
 		fout << std::string(list);
 		fout.close();
@@ -768,12 +771,12 @@ void APIServer::run() {
 			}
 
 			if (strcmp(prefix, "GroupInfo") == 0) {
-				prcsGetGroupInfo();
+				prcsGetGroupInfo(payload);
 				continue;
 			}
 
 			if (strcmp(prefix, "FriendList") == 0) {
-				prcsGetFriendList();
+				prcsGetFriendList(payload);
 				continue;
 			}
 
