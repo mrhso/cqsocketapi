@@ -958,6 +958,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'GroupMemberList':
+                        // 此處 frames[1] 給出絕對路徑純粹是為了與酷 Q 的原生 API 統一
                         file = path.join(this._dir || base642str(frames[2], this._unicode), path.win32.relative(base642str(frames[2], this._unicode), base642str(frames[1], this._unicode)).replace(/\\/gu, '/'));
                         raw = Buffer.from(fs.readFileSync(file).toString(), 'base64');
                         count = raw.readUInt32BE(0);
@@ -1025,7 +1026,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
-                        info = this._dir || base642str(frames[2], this._unicode);
+                        info = this._dir || base642str(frames[1], this._unicode);
                         key = 'AppDirectory';
                         if (this._pendingQueries.has(key)) {
                             callback = this._pendingQueries.get(key);
