@@ -46,22 +46,22 @@ Frame = Prefix (max 256) + Payload (max 32768)
 'RequestAddFriend' + QQNum + EncodedText (Message) + EncodedText (Flag) + SubType + SendTime + EncodedText (UserInfo)
 'RequestAddGroup' + GroupID + QQNum + EncodedText (Message) + EncodedText (Flag) + SubType + SendTime + EncodedText (UserInfo)
 'GroupUpload' + GroupID + QQNum + EncodedText (FileInfo) + SubType + SendTime + EncodedText (UserInfo)
-'GroupMemberList' + EncodedText (File) + EncodedText (CQRoot)
+'GroupMemberList' + EncodedText (File) + EncodedText (AppDir)
 'Cookies' + EncodedText (Cookies) + EncodedText (Domain)
 'CsrfToken' + EncodedText (CsrfToken)
 'LoginQQ' + QQNum
-'AppDirectory' + EncodedText (AppDirectory) + EncodedText (CQRoot)
+'AppDirectory' + EncodedText (AppDirectory)
 'PrivateMessageID' + MsgID + Key
 'GroupMessageID' + MsgID + Key
 'DiscussMessageID' + MsgID + Key
-'GroupList' + EncodedText (File) + EncodedText (CQRoot)
-'Record' + EncodedText (File) + EncodedText (Source) + EncodedText (Format) + EncodedText (CQRoot)
-'Image' + EncodedText (File) + EncodedText (Source) + EncodedText (CQRoot)
+'GroupList' + EncodedText (File) + EncodedText (AppDir)
+'Record' + EncodedText (File) + EncodedText (Source) + EncodedText (Format) + EncodedText (AppDir)
+'Image' + EncodedText (File) + EncodedText (Source) + EncodedText (AppDir)
 'CanSendImage' + CanSendImage
 'CanSendRecord' + CanSendRecord
 'GroupBan' + GroupID + AdminQQNum + OperatedQQNum + Duration + SubType + SendTime + EncodedText (AdminInfo) + EncodedText (UserInfo)
 'GroupInfo' + EncodedText (GroupInfo)
-'FriendList' + EncodedText (File) + EncodedText (CQRoot)
+'FriendList' + EncodedText (File) + EncodedText (AppDir)
 ```
 其中：
 ```

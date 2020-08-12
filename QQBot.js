@@ -683,7 +683,7 @@ class QQBot extends EventEmitter {
         this._timeoutTimer = null;
         this._isAirA = options.CoolQAirA;
         this._unicode = options.unicode;
-        // 表示實際環境的酷 Q 目錄，需要自己設定
+        // 表示實際環境的 CoolQ Socket API 應用目錄，需要自己設定
         // Windows 用家沒填也無事，但酷 Q on Docker 用家務必準確設定！
         this._dir = options.dir;
         this._pendingQueries = new Map();
@@ -1025,7 +1025,7 @@ class QQBot extends EventEmitter {
                         break;
 
                     case 'AppDirectory':
-                        info = path.join(this._dir || base642str(frames[2], this._unicode), path.win32.relative(base642str(frames[2], this._unicode), base642str(frames[1], this._unicode)).replace(/\\/gu, '/'));
+                        info = this._dir || base642str(frames[2], this._unicode);
                         key = 'AppDirectory';
                         if (this._pendingQueries.has(key)) {
                             callback = this._pendingQueries.get(key);
