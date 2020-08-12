@@ -3,7 +3,7 @@
     "apiver":9,
     "appid":"me.cqp.ishisashi.cqsocketapi",
     "name":"CoolQ Socket API (Node.js)",
-    "version":"3.2.0",
+    "version":"3.3.0",
     "version_id":1,
     "author":"Dazzy Ding, vjudge1, Ishisashi",
     "description":"CoolQ Scoket API (Node.js)\r\n\r\n主要作者名单（按时间顺序）：\r\nDazzy Ding\r\nvjudge1\r\nPaspy（抱歉上面牺牲掉了 www）\r\nIshisashi",
