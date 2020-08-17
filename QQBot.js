@@ -98,7 +98,7 @@ const parseStrangerInfo = (str, qq) => {
         // 昵稱
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 性別
@@ -258,7 +258,7 @@ const parseFileInfo = (str) => {
         // 檔案名
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 大小
@@ -313,7 +313,7 @@ const parseGroupInfo = (str) => {
         // 群名
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         if (offset === raw.length - 8) {
@@ -364,13 +364,13 @@ const parseFriendInfo = (str) => {
         // 昵稱
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.name = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
+        obj.name = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         // 備註
         strlen = raw.readUInt16BE(offset);
         offset += 2;
-        obj.remark = buf2str(raw, offset, offset + strlen, this._unicode).replace(/&#91;/gu, '[').replace(/&#93;/gu, ']').replace(/&amp;/gu, '&');
+        obj.remark = buf2str(raw, offset, offset + strlen, this._unicode);
         offset += strlen;
 
         let r = Object.freeze(obj);
