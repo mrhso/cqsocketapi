@@ -438,7 +438,7 @@ const parseMessage = (message) => {
                 // [CQ:emoji,id=128052]
                 tmp = param.match(/(?:^|,)id=(.*?)(?:,|$)/su);
                 if (tmp && tmp[1]) {
-                    return String.fromCodePoint(parseInt(tmp[1]));
+                    return String.fromCodePoint(tmp[1]);
                 } else {
                     return '[绘文字]';
                 }
